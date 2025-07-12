@@ -255,3 +255,217 @@ document
     // Reset preview gambar
     checkLoginStatus(); // Reload user data
   });
+
+// Function to load kegiatan data
+function loadKegiatan() {
+  fetch("controller/HomeController.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "request=get_kegiatan",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        createKegiatanTabs(data.data);
+      } else {
+        displayNoKegiatan();
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      displayNoKegiatan();
+    });
+}
+
+// Function to create tabs based on kegiatan data
+function createKegiatanTabs(kegiatanList) {
+  if (kegiatanList.length === 0) {
+    displayNoKegiatan();
+    return;
+  }
+
+  // Group kegiatan by month
+  const kegiatanByMonth = {};
+  kegiatanList.forEach((kegiatan) => {
+    const date = new Date(kegiatan.jadwal_kegiatan);
+    const monthKey = `${date.getFullYear()}-${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}`;
+    const monthName = date.toLocaleDateString("id-ID", {
+      month: "long",
+      year: "numeric",
+    });
+
+    if (!kegiatanByMonth[monthKey]) {
+      kegiatanByMonth[monthKey] = {
+        name: monthName,
+        kegiatan: [],
+      };
+    }
+    kegiatanByMonth[monthKey].kegiatan.push(kegiatan);
+  });
+
+  // Create tabs
+  createTabNavigation(kegiatanByMonth);
+  createTabContent(kegiatanByMonth);
+}
+
+// Function to create tab navigation
+function createTabNavigation(kegiatanByMonth) {
+  const tabNav = document.getElementById("kegiatanTabs");
+  const months = Object.keys(kegiatanByMonth);
+
+  let tabsHtml = "";
+  months.forEach((monthKey, index) => {
+    const monthData = kegiatanByMonth[monthKey];
+    const isActive = index === 0 ? "active show" : "";
+    const tabId = `kegiatan-tab-${index + 1}`;
+
+    // Calculate column width based on number of tabs
+    const colWidth = Math.floor(12 / Math.min(months.length, 4));
+
+    tabsHtml += `
+      <li class="nav-item col-${colWidth}">
+        <a class="nav-link ${isActive}" data-bs-toggle="tab" data-bs-target="#${tabId}">
+          <i class="bi bi-calendar-event"></i>
+          <h4 class="d-none d-lg-block">${monthData.name}</h4>
+          <span class="d-lg-none">${monthData.name}</span>
+        </a>
+      </li>
+    `;
+  });
+
+  tabNav.innerHTML = tabsHtml;
+}
+
+// Function to create tab content
+function createTabContent(kegiatanByMonth) {
+  const tabContent = document.getElementById("kegiatanTabContent");
+  const months = Object.keys(kegiatanByMonth);
+
+  let contentHtml = "";
+  months.forEach((monthKey, index) => {
+    const monthData = kegiatanByMonth[monthKey];
+    const isActive = index === 0 ? "active show" : "";
+    const tabId = `kegiatan-tab-${index + 1}`;
+
+    contentHtml += `
+      <div class="tab-pane fade ${isActive}" id="${tabId}">
+        <div class="row">
+          ${monthData.kegiatan
+            .map((kegiatan) => createKegiatanCard(kegiatan))
+            .join("")}
+        </div>
+      </div>
+    `;
+  });
+
+  tabContent.innerHTML = contentHtml;
+}
+
+// Function to create kegiatan card (updated for tab layout)
+function createKegiatanCard(kegiatan) {
+  const jadwal = new Date(kegiatan.jadwal_kegiatan);
+  const jadwalFormatted = jadwal.toLocaleDateString("id-ID", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const waktuFormatted = jadwal.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  // Tentukan apakah thumbnail adalah video atau gambar
+  const isVideo =
+    kegiatan.thumbnails_kegiatan.toLowerCase().includes(".mp4") ||
+    kegiatan.thumbnails_kegiatan.toLowerCase().includes(".webm") ||
+    kegiatan.thumbnails_kegiatan.toLowerCase().includes(".ogg");
+
+  const thumbnailPath = `../assets/img/thumb/${kegiatan.thumbnails_kegiatan}`;
+
+  // Create contact persons HTML
+  let contactsHtml = "";
+  if (kegiatan.petugas && kegiatan.petugas.length > 0) {
+    contactsHtml = `
+      <div class="kegiatan-contacts">
+        <h6><i class="bi bi-person-check"></i> Kontak Person untuk Absensi:</h6>
+        ${kegiatan.petugas
+          .map(
+            (petugas) => `
+          <div class="contact-person">
+            <i class="bi bi-person-circle"></i>
+            <div class="contact-info">
+              <div class="contact-name">${petugas.nama}</div>
+              <div class="contact-phone">${petugas.nohp}</div>
+            </div>
+            <a href="https://wa.me/${petugas.nohp.replace(/[^0-9]/g, "")}" 
+               target="_blank" 
+               class="wa-button">
+              <i class="bi bi-whatsapp"></i> WA
+            </a>
+          </div>
+        `
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
+  return `
+    <div class="col-lg-6 col-md-6 col-sm-12" data-aos="fade-up" data-aos-delay="100">
+      <div class="kegiatan-card">
+        <div class="kegiatan-thumbnail">
+          ${
+            isVideo
+              ? `<video src="${thumbnailPath}" controls muted>
+              <source src="${thumbnailPath}" type="video/mp4">
+              Browser Anda tidak mendukung video.
+            </video>`
+              : `<img src="${thumbnailPath}" alt="${kegiatan.judul_kegiatan}" onerror="this.src='assets/img/placeholder.jpg'">`
+          }
+          <div class="kegiatan-date-badge">
+            ${jadwal.getDate()} ${jadwal.toLocaleDateString("id-ID", {
+    month: "short",
+  })}
+          </div>
+        </div>
+        <div class="kegiatan-content">
+          <h3 class="kegiatan-title">${kegiatan.judul_kegiatan}</h3>
+          <p class="kegiatan-description">${kegiatan.deksripsi_kegiatan}</p>
+          <div class="kegiatan-schedule">
+            <i class="bi bi-calendar-event"></i>
+            <div>
+              <strong>${jadwalFormatted}</strong><br>
+              <small>Pukul ${waktuFormatted} WIB</small>
+            </div>
+          </div>
+          ${contactsHtml}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Function to display no kegiatan message
+function displayNoKegiatan() {
+  const container = document.getElementById("kegiatanContainer");
+  container.innerHTML = `
+    <div class="col-12">
+      <div class="no-kegiatan">
+        <i class="bi bi-calendar-x"></i>
+        <h4>Belum Ada Kegiatan Mendatang</h4>
+        <p>Saat ini belum ada kegiatan yang dijadwalkan.</p>
+      </div>
+    </div>
+  `;
+}
+
+// Tambahkan pemanggilan loadKegiatan() di document ready
+document.addEventListener("DOMContentLoaded", function () {
+  checkLoginStatus();
+  loadKegiatan(); // Tambahkan ini
+});

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 05, 2025 at 06:23 AM
+-- Generation Time: Jul 12, 2025 at 08:01 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -63,7 +63,7 @@ CREATE TABLE `tb_kegiatan` (
 --
 
 INSERT INTO `tb_kegiatan` (`id_kegiatan`, `judul_kegiatan`, `deksripsi_kegiatan`, `jadwal_kegiatan`, `kehadiran_kegiatan`, `thumbnails_kegiatan`, `status_kegiatan`, `created_at`, `updated_at`) VALUES
-(1, 'UPACARA HARI LAHIR PANCASILA 2024', 'UPACARA HARI LAHIR PANCASILA 2024', '2024-06-08 08:11:24', 'http://docs.google.com/spreadsheets/d/1FD1PfsdPiOPsTQb9l6oyh-mptjy9LzXt6rtybFF07G0/edit?resourcekey=&gid=1861385280#gid=1861385280', 'Snaptik.app_7319763115694968069.mp4', 'pending', '2025-06-10 08:11:24', '2025-06-10 14:34:13'),
+(1, 'UPACARA HARI LAHIR PANCASILA 2024', 'UPACARA HARI LAHIR PANCASILA 2024', '2025-07-06 09:37:00', 'http://docs.google.com/spreadsheets/d/1FD1PfsdPiOPsTQb9l6oyh-mptjy9LzXt6rtybFF07G0/edit?resourcekey=&gid=1861385280#gid=1861385280', 'Snaptik.app_7319763115694968069.mp4', 'pending', '2025-06-10 08:11:24', '2025-07-05 09:37:56'),
 (4, 'tes eee', 'tesd123', '2025-06-11 07:23:00', 'http://docs.google.com/spreadsheets/d/1FD1PfsdPiOP...\n', 'kegiatan_4_1749975969_684e83a1e3603.mp4', 'pending', '2025-06-15 07:24:06', '2025-06-15 08:40:58'),
 (5, 'tes eee1243', 'tes23', '2025-07-02 08:27:00', 'ets', 'kegiatan_1749976084_684e84141ff79.mp4', 'pending', '2025-06-15 08:28:04', '2025-06-15 08:28:04');
 
@@ -78,6 +78,16 @@ CREATE TABLE `tb_penugasan` (
   `id_kegiatan` bigint(11) NOT NULL,
   `id_pegawai` bigint(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tb_penugasan`
+--
+
+INSERT INTO `tb_penugasan` (`id_penugasan`, `id_kegiatan`, `id_pegawai`) VALUES
+(2, 1, 14),
+(4, 1, 12),
+(5, 1, 15),
+(6, 1, 16);
 
 -- --------------------------------------------------------
 
@@ -102,9 +112,12 @@ CREATE TABLE `tb_user` (
 --
 
 INSERT INTO `tb_user` (`id`, `nama`, `email`, `nohp`, `role`, `password`, `photo_profile`, `created_at`, `updated_at`) VALUES
-(1, 'Tri Setiawan', 'poseidonseal03@gmail.com', '082170710632', 'admin', '$2a$12$/kiKCntHFg1NaPjDil80J.pq8Tuf8UusLdi2iVAbHTJpdD9njqiYq', 'profile_1_1749906931.png', '2025-06-05 16:58:03', '2025-07-05 02:29:46'),
+(1, 'Tri Setiawan', 'poseidonseal03@gmail.com', '082170710632', 'admin', '$2a$12$/kiKCntHFg1NaPjDil80J.pq8Tuf8UusLdi2iVAbHTJpdD9njqiYq', 'profile_1_1751690003.png', '2025-06-05 16:58:03', '2025-07-05 04:33:23'),
 (11, 'Poseidon Seal1', 'tes123@gmail.com', '085219712554', 'admin', '$2y$10$CkTe4Tff4ZbThRzgspT3ru94bvKfCY6PiNOj5KjD0jG9NYqACYnPq', 'admin_11_1749294466_68441d82384ac.png', '2025-06-07 10:54:35', '2025-06-30 20:07:02'),
-(12, 'Poseidon Seal1', 'poseidonseal03@gmail.com1', '085219712554', 'petugas', '$2y$10$.NiC3YmJcf/.qYBsjKzcrO9/zBKGUXyKJSL6pjPV7QXc1q1kWU3dG', 'petugas_1749539324_6847d9fcc701a.jpg', '2025-06-10 07:08:44', '2025-06-10 07:08:44');
+(12, 'Poseidon Seal1', 'poseidonseal03@gmail.com1', '085219712554', 'petugas', '$2y$10$.NiC3YmJcf/.qYBsjKzcrO9/zBKGUXyKJSL6pjPV7QXc1q1kWU3dG', 'petugas_1749539324_6847d9fcc701a.jpg', '2025-06-10 07:08:44', '2025-06-10 07:08:44'),
+(14, 'Poseidon Seal2', 'poseidonseal03@gmail.com11', '085219712554', 'petugas', '$2y$10$.NiC3YmJcf/.qYBsjKzcrO9/zBKGUXyKJSL6pjPV7QXc1q1kWU3dG', 'petugas_1749539324_6847d9fcc701a.jpg', '2025-06-10 07:08:44', '2025-07-05 04:47:10'),
+(15, 'Poseidon Seal3', 'poseidonseal03@gmail.com112', '085219712554', 'petugas', '$2y$10$.NiC3YmJcf/.qYBsjKzcrO9/zBKGUXyKJSL6pjPV7QXc1q1kWU3dG', 'petugas_1749539324_6847d9fcc701a.jpg', '2025-06-10 07:08:44', '2025-07-05 04:47:14'),
+(16, 'Poseidon Seal4', 'poseidonseal03@gmail.com11122', '085219712554', 'petugas', '$2y$10$.NiC3YmJcf/.qYBsjKzcrO9/zBKGUXyKJSL6pjPV7QXc1q1kWU3dG', 'petugas_1749539324_6847d9fcc701a.jpg', '2025-06-10 07:08:44', '2025-07-05 04:47:17');
 
 --
 -- Indexes for dumped tables
@@ -160,13 +173,13 @@ ALTER TABLE `tb_kegiatan`
 -- AUTO_INCREMENT for table `tb_penugasan`
 --
 ALTER TABLE `tb_penugasan`
-  MODIFY `id_penugasan` bigint(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_penugasan` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `tb_user`
 --
 ALTER TABLE `tb_user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

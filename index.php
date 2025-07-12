@@ -70,6 +70,340 @@ $appSetting = getAppSetting($pdo);
       box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
       color: white;
     }
+
+    /* Tambahkan CSS ini di bagian style dalam <head> */
+    /* Tab Navigation Styling */
+    .nav-tabs {
+      border-bottom: 2px solid #e9ecef;
+      margin-bottom: 30px;
+    }
+
+    .nav-tabs .nav-item {
+      margin-bottom: -2px;
+    }
+
+    .nav-tabs .nav-link {
+      background: transparent;
+      border: 2px solid transparent;
+      border-radius: 10px 10px 0 0;
+      color: #6c757d;
+      font-weight: 500;
+      padding: 20px 15px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-tabs .nav-link:hover {
+      border-color: #e9ecef;
+      color: #007bff;
+      background: rgba(0, 123, 255, 0.05);
+    }
+
+    .nav-tabs .nav-link.active {
+      background: linear-gradient(45deg, #007bff, #0056b3);
+      border-color: #007bff;
+      color: white;
+      box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+
+    .nav-tabs .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(45deg, #007bff, #0056b3);
+    }
+
+    .nav-tabs .nav-link i {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .nav-tabs .nav-link h4 {
+      font-size: 0.9rem;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    /* Tab Content Styling */
+    .tab-content {
+      min-height: 400px;
+    }
+
+    .tab-pane {
+      padding: 20px 0;
+    }
+
+    /* Responsive adjustments for tabs */
+    @media (max-width: 992px) {
+      .nav-tabs .nav-link {
+        padding: 15px 10px;
+      }
+
+      .nav-tabs .nav-link h4 {
+        font-size: 0.8rem;
+      }
+
+      .nav-tabs .nav-link i {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-tabs .nav-link {
+        padding: 10px 8px;
+      }
+
+      .nav-tabs .nav-link i {
+        font-size: 1rem;
+        margin-bottom: 3px;
+      }
+
+      .nav-tabs .nav-link span {
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+    }
+
+    /* Animation for tab switching */
+    .tab-pane.fade {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .tab-pane.fade.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Loading state for tabs */
+    .tab-loading {
+      text-align: center;
+      padding: 50px 0;
+      color: #6c757d;
+    }
+
+    .tab-loading .spinner-border {
+      width: 3rem;
+      height: 3rem;
+      margin-bottom: 20px;
+    }
+
+    /* Empty state styling */
+    .tab-empty {
+      text-align: center;
+      padding: 50px 20px;
+      color: #6c757d;
+    }
+
+    .tab-empty i {
+      font-size: 3rem;
+      color: #dee2e6;
+      margin-bottom: 20px;
+    }
+
+    .tab-empty h4 {
+      color: #495057;
+      margin-bottom: 10px;
+    }
+
+    /* Kegiatan card adjustments for tab layout */
+    .tab-pane .kegiatan-card {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tab-pane .kegiatan-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tab-pane .kegiatan-description {
+      flex: 1;
+    }
+
+    /* Badge untuk jumlah kegiatan di tab */
+    .nav-tabs .nav-link .badge {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: #dc3545;
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    .nav-tabs .nav-link.active .badge {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .kegiatan-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin-bottom: 30px;
+    }
+
+    .kegiatan-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .kegiatan-thumbnail {
+      position: relative;
+      height: 200px;
+      overflow: hidden;
+    }
+
+    .kegiatan-thumbnail img,
+    .kegiatan-thumbnail video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .kegiatan-date-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: linear-gradient(45deg, #007bff, #0056b3);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .kegiatan-content {
+      padding: 20px;
+    }
+
+    .kegiatan-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .kegiatan-description {
+      color: #666;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 15px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .kegiatan-schedule {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .kegiatan-schedule i {
+      color: #007bff;
+      margin-right: 8px;
+    }
+
+    .kegiatan-contacts {
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+
+    .kegiatan-contacts h6 {
+      color: #333;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .contact-person {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .contact-person i {
+      color: #28a745;
+      margin-right: 8px;
+    }
+
+    .contact-person .contact-info {
+      flex: 1;
+    }
+
+    .contact-person .contact-name {
+      font-weight: 500;
+      color: #333;
+      font-size: 0.85rem;
+    }
+
+    .contact-person .contact-phone {
+      color: #666;
+      font-size: 0.8rem;
+    }
+
+    .contact-person .wa-button {
+      background: #25d366;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      text-decoration: none;
+      transition: background 0.3s ease;
+    }
+
+    .contact-person .wa-button:hover {
+      background: #1da851;
+      color: white;
+    }
+
+    .no-kegiatan {
+      text-align: center;
+      color: #666;
+      padding: 40px 20px;
+    }
+
+    .no-kegiatan i {
+      font-size: 3rem;
+      color: #ddd;
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .kegiatan-card {
+        margin-bottom: 20px;
+      }
+
+      .kegiatan-thumbnail {
+        height: 150px;
+      }
+
+      .kegiatan-content {
+        padding: 15px;
+      }
+    }
   </style>
 </head>
 
@@ -92,8 +426,8 @@ $appSetting = getAppSetting($pdo);
       <nav id="navmenu" class="navmenu">
         <ul>
           <li><a href="#hero" class="active">Home</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#services">Services</a></li>
+          <li><a href="#profile">Profile</a></li>
+          <li><a href="#agenda_kegiatan">Agenda Kegiatan</a></li>
           <li><a href="#portfolio">Portfolio</a></li>
           <li><a href="#team">Team</a></li>
           <li><a href="#contact">Contact</a></li>
@@ -278,9 +612,13 @@ $appSetting = getAppSetting($pdo);
 
     </section><!-- /Hero Section -->
 
-    <!-- About Section -->
-    <section id="about" class="about section">
-
+    <!-- Profile Section -->
+    <section id="profile" class="about section">
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Profile</h2>
+        <p>Tentang Kami</p>
+      </div><!-- End Section Title -->
       <div class="container">
 
         <div class="row gy-4">
@@ -326,177 +664,45 @@ $appSetting = getAppSetting($pdo);
       </div>
 
     </section>
-    <!-- /About Section -->
+    <!-- /Profile Section -->
 
-    <!-- Features Section -->
-    <section id="features" class="features section">
+    <!-- Kegiatan Section -->
+    <section id="agenda_kegiatan" class="features section">
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Agenda Kegiatan Mendatang</h2>
+        <p>Kegiatan yang akan diselenggarakan dalam waktu dekat.</p>
+      </div><!-- End Section Title -->
 
       <div class="container">
-
-        <ul class="nav nav-tabs row  d-flex" data-aos="fade-up" data-aos-delay="100">
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs row d-flex" data-aos="fade-up" data-aos-delay="100" id="kegiatanTabs">
+          <!-- Tab akan dibuat dinamis berdasarkan kategori kegiatan -->
           <li class="nav-item col-3">
-            <a class="nav-link active show" data-bs-toggle="tab" data-bs-target="#features-tab-1">
-              <i class="bi bi-binoculars"></i>
-              <h4 class="d-none d-lg-block">Modi sit est dela pireda nest</h4>
-            </a>
-          </li>
-          <li class="nav-item col-3">
-            <a class="nav-link" data-bs-toggle="tab" data-bs-target="#features-tab-2">
-              <i class="bi bi-box-seam"></i>
-              <h4 class="d-none d-lg-block">Unde praesenti mara setra le</h4>
-            </a>
-          </li>
-          <li class="nav-item col-3">
-            <a class="nav-link" data-bs-toggle="tab" data-bs-target="#features-tab-3">
-              <i class="bi bi-brightness-high"></i>
-              <h4 class="d-none d-lg-block">Pariatur explica nitro dela</h4>
-            </a>
-          </li>
-          <li class="nav-item col-3">
-            <a class="nav-link" data-bs-toggle="tab" data-bs-target="#features-tab-4">
-              <i class="bi bi-command"></i>
-              <h4 class="d-none d-lg-block">Nostrum qui dile node</h4>
+            <a class="nav-link active show" data-bs-toggle="tab" data-bs-target="#kegiatan-tab-1">
+              <i class="bi bi-calendar-event"></i>
+              <h4 class="d-none d-lg-block">Semua Kegiatan</h4>
             </a>
           </li>
         </ul><!-- End Tab Nav -->
 
-        <div class="tab-content" data-aos="fade-up" data-aos-delay="200">
-
-          <div class="tab-pane fade active show" id="features-tab-1">
-            <div class="row">
-              <div class="col-lg-6 order-2 order-lg-1 mt-3 mt-lg-0">
-                <h3>Voluptatem dignissimos provident quasi corporis voluptates sit assumenda.</h3>
-                <p class="fst-italic">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-                  dolore
-                  magna aliqua.
-                </p>
-                <ul>
-                  <li><i class="bi bi-check2-all"></i>
-                    <spab>Ullamco laboris nisi ut aliquip ex ea commodo consequat.</spab>
-                  </li>
-                  <li><i class="bi bi-check2-all"></i> <span>Duis aute irure dolor in reprehenderit in voluptate
-                      velit</span>.</li>
-                  <li><i class="bi bi-check2-all"></i> <span>Ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                      Duis aute irure dolor in reprehenderit in voluptate trideta storacalaperda mastiro dolore eu
-                      fugiat nulla pariatur.</span></li>
-                </ul>
-                <p>
-                  Ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-                  voluptate
-                  velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-                  sunt in
-                  culpa qui officia deserunt mollit anim id est laborum
-                </p>
-              </div>
-              <div class="col-lg-6 order-1 order-lg-2 text-center">
-                <img src="assets/img/working-1.jpg" alt="" class="img-fluid">
+        <!-- Tab Content -->
+        <div class="tab-content" data-aos="fade-up" data-aos-delay="200" id="kegiatanTabContent">
+          <div class="tab-pane fade active show" id="kegiatan-tab-1">
+            <div class="row" id="kegiatanContainer">
+              <!-- Kegiatan akan dimuat secara dinamis -->
+              <div class="col-12 text-center">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Memuat kegiatan...</p>
               </div>
             </div>
-          </div><!-- End Tab Content Item -->
-
-          <div class="tab-pane fade" id="features-tab-2">
-            <div class="row">
-              <div class="col-lg-6 order-2 order-lg-1 mt-3 mt-lg-0">
-                <h3>Neque exercitationem debitis soluta quos debitis quo mollitia officia est</h3>
-                <p>
-                  Ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-                  voluptate
-                  velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-                  sunt in
-                  culpa qui officia deserunt mollit anim id est laborum
-                </p>
-                <p class="fst-italic">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-                  dolore
-                  magna aliqua.
-                </p>
-                <ul>
-                  <li><i class="bi bi-check2-all"></i> <span>Ullamco laboris nisi ut aliquip ex ea commodo
-                      consequat.</span></li>
-                  <li><i class="bi bi-check2-all"></i> <span>Duis aute irure dolor in reprehenderit in voluptate
-                      velit.</span></li>
-                  <li><i class="bi bi-check2-all"></i> <span>Provident mollitia neque rerum asperiores dolores quos qui
-                      a. Ipsum neque dolor voluptate nisi sed.</span></li>
-                  <li><i class="bi bi-check2-all"></i> <span>Ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                      Duis aute irure dolor in reprehenderit in voluptate trideta storacalaperda mastiro dolore eu
-                      fugiat nulla pariatur.</span></li>
-                </ul>
-              </div>
-              <div class="col-lg-6 order-1 order-lg-2 text-center">
-                <img src="assets/img/working-2.jpg" alt="" class="img-fluid">
-              </div>
-            </div>
-          </div><!-- End Tab Content Item -->
-
-          <div class="tab-pane fade" id="features-tab-3">
-            <div class="row">
-              <div class="col-lg-6 order-2 order-lg-1 mt-3 mt-lg-0">
-                <h3>Voluptatibus commodi ut accusamus ea repudiandae ut autem dolor ut assumenda</h3>
-                <p>
-                  Ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-                  voluptate
-                  velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-                  sunt in
-                  culpa qui officia deserunt mollit anim id est laborum
-                </p>
-                <ul>
-                  <li><i class="bi bi-check2-all"></i> <span>Ullamco laboris nisi ut aliquip ex ea commodo
-                      consequat.</span></li>
-                  <li><i class="bi bi-check2-all"></i> <span>Duis aute irure dolor in reprehenderit in voluptate
-                      velit.</span></li>
-                  <li><i class="bi bi-check2-all"></i> <span>Provident mollitia neque rerum asperiores dolores quos qui
-                      a. Ipsum neque dolor voluptate nisi sed.</span></li>
-                </ul>
-                <p class="fst-italic">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-                  dolore
-                  magna aliqua.
-                </p>
-              </div>
-              <div class="col-lg-6 order-1 order-lg-2 text-center">
-                <img src="assets/img/working-3.jpg" alt="" class="img-fluid">
-              </div>
-            </div>
-          </div><!-- End Tab Content Item -->
-
-          <div class="tab-pane fade" id="features-tab-4">
-            <div class="row">
-              <div class="col-lg-6 order-2 order-lg-1 mt-3 mt-lg-0">
-                <h3>Omnis fugiat ea explicabo sunt dolorum asperiores sequi inventore rerum</h3>
-                <p>
-                  Ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-                  voluptate
-                  velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-                  sunt in
-                  culpa qui officia deserunt mollit anim id est laborum
-                </p>
-                <p class="fst-italic">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-                  dolore
-                  magna aliqua.
-                </p>
-                <ul>
-                  <li><i class="bi bi-check2-all"></i> <span>Ullamco laboris nisi ut aliquip ex ea commodo
-                      consequat.</span></li>
-                  <li><i class="bi bi-check2-all"></i> <span>Duis aute irure dolor in reprehenderit in voluptate
-                      velit.</span></li>
-                  <li><i class="bi bi-check2-all"></i> <span>Ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                      Duis aute irure dolor in reprehenderit in voluptate trideta storacalaperda mastiro dolore eu
-                      fugiat nulla pariatur.</span></li>
-                </ul>
-              </div>
-              <div class="col-lg-6 order-1 order-lg-2 text-center">
-                <img src="assets/img/working-4.jpg" alt="" class="img-fluid">
-              </div>
-            </div>
-          </div><!-- End Tab Content Item -->
-
+          </div>
         </div>
-
       </div>
-
-    </section><!-- /Features Section -->
+    </section>
+    <!-- /Kegiatan Section -->
 
     <!-- Portfolio Section -->
     <section id="portfolio" class="portfolio section">
@@ -828,73 +1034,6 @@ $appSetting = getAppSetting($pdo);
 
     </section><!-- /Testimonials Section -->
 
-    <!-- Team Section -->
-    <section id="team" class="team section light-background">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Team</h2>
-        <p>CHECK OUR TEAM</p>
-      </div><!-- End Section Title -->
-
-      <div class="container">
-
-        <div class="row gy-5">
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="member">
-              <div class="pic"><img src="assets/img/team/team-1.jpg" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>Walter White</h4>
-                <span>Chief Executive Officer</span>
-                <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""><i class="bi bi-linkedin"></i></a>
-                </div>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-            <div class="member">
-              <div class="pic"><img src="assets/img/team/team-2.jpg" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>Sarah Jhonson</h4>
-                <span>Product Manager</span>
-                <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""><i class="bi bi-linkedin"></i></a>
-                </div>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-            <div class="member">
-              <div class="pic"><img src="assets/img/team/team-3.jpg" class="img-fluid" alt=""></div>
-              <div class="member-info">
-                <h4>William Anderson</h4>
-                <span>CTO</span>
-                <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""><i class="bi bi-linkedin"></i></a>
-                </div>
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-
-        </div>
-
-      </div>
-
-    </section><!-- /Team Section -->
-
     <!-- Contact Section -->
     <section id="contact" class="contact section">
 
@@ -1013,34 +1152,11 @@ $appSetting = getAppSetting($pdo);
             <li><i class="bi bi-chevron-right"></i> <a href="#">Privacy policy</a></li>
           </ul>
         </div>
-
-        <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Our Services</h4>
-          <ul>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Web Design</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Web Development</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Product Management</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Marketing</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Graphic Design</a></li>
-          </ul>
-        </div>
-
-        <div class="col-lg-4 col-md-12 footer-newsletter">
-          <h4>Our Newsletter</h4>
-          <p>Subscribe to our newsletter and receive the latest news about our products and services!</p>
-          <form action="forms/newsletter.php" method="post" class="php-email-form">
-            <div class="newsletter-form"><input type="email" name="email"><input type="submit" value="Subscribe"></div>
-            <div class="loading">Loading</div>
-            <div class="error-message"></div>
-            <div class="sent-message">Your subscription request has been sent. Thank you!</div>
-          </form>
-        </div>
-
       </div>
     </div>
 
     <div class="container copyright text-center mt-4">
-      <p>© <span>Copyright</span> <strong class="px-1 sitename">Dewi</strong> <span>All Rights Reserved</span></p>
+      <p>© <span>Copyright</span> <strong class="px-1 sitename">ThemeWagon</strong> <span>All Rights Reserved</span></p>
       <div class="credits">
         <!-- All the links in the footer should remain intact. -->
         <!-- You can delete the links only if you've purchased the pro version. -->

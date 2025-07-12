@@ -297,11 +297,65 @@ function getAppSetting($pdo)
     }
 }
 
+// Fungsi untuk mengambil data kegiatan pending dengan petugas yang ditugaskan
+function getPendingKegiatan($pdo)
+{
+    try {
+        $sql = "SELECT 
+                    k.id_kegiatan,
+                    k.judul_kegiatan,
+                    k.deksripsi_kegiatan,
+                    k.jadwal_kegiatan,
+                    k.thumbnails_kegiatan,
+                    GROUP_CONCAT(CONCAT(u.nama, '|', u.nohp) SEPARATOR ';') as petugas_info
+                FROM tb_kegiatan k
+                LEFT JOIN tb_penugasan p ON k.id_kegiatan = p.id_kegiatan
+                LEFT JOIN tb_user u ON p.id_pegawai = u.id
+                WHERE k.status_kegiatan = 'pending'
+                GROUP BY k.id_kegiatan, k.judul_kegiatan, k.deksripsi_kegiatan, k.jadwal_kegiatan, k.thumbnails_kegiatan
+                ORDER BY k.jadwal_kegiatan ASC";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Process petugas info
+        foreach ($result as &$kegiatan) {
+            $petugas_array = [];
+            if (!empty($kegiatan['petugas_info'])) {
+                $petugas_list = explode(';', $kegiatan['petugas_info']);
+                foreach ($petugas_list as $petugas) {
+                    $petugas_data = explode('|', $petugas);
+                    if (count($petugas_data) == 2) {
+                        $petugas_array[] = [
+                            'nama' => $petugas_data[0],
+                            'nohp' => $petugas_data[1]
+                        ];
+                    }
+                }
+            }
+            $kegiatan['petugas'] = $petugas_array;
+        }
+
+        return $result;
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
 // Handle AJAX requests only
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($request)) {
     header('Content-Type: application/json');
 
     switch ($request) {
+        case 'get_kegiatan':
+            $kegiatan = getPendingKegiatan($pdo);
+            echo json_encode([
+                'success' => true,
+                'data' => $kegiatan
+            ]);
+            break;
+
         case 'check_login':
             if (checkLoginStatus()) {
                 $userData = getUserData($pdo, $_SESSION['user_id']);
