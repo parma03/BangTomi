@@ -102,7 +102,6 @@ function loginUser($pdo, $email, $password, $rememberMe = false)
             'message' => 'Login berhasil',
             'user' => $userData
         ];
-
     } catch (Exception $e) {
         return [
             'success' => false,
@@ -259,7 +258,6 @@ function updateUserProfile($pdo, $user_id, $data, $file = null)
         } else {
             throw new Exception('Gagal update profile');
         }
-
     } catch (Exception $e) {
         return [
             'success' => false,
@@ -343,6 +341,96 @@ function getPendingKegiatan($pdo)
     }
 }
 
+function getHistoriKegiatan($pdo, $limit = null, $kategori = null)
+{
+    try {
+        $sql = "SELECT 
+                    k.id_kegiatan,
+                    k.judul_kegiatan,
+                    k.deksripsi_kegiatan,
+                    k.jadwal_kegiatan,
+                    k.thumbnails_kegiatan,
+                    k.kehadiran_kegiatan,
+                    k.created_at,
+                    GROUP_CONCAT(CONCAT(u.nama, '|', u.nohp) SEPARATOR ';') as petugas_info
+                FROM tb_kegiatan k
+                LEFT JOIN tb_penugasan p ON k.id_kegiatan = p.id_kegiatan
+                LEFT JOIN tb_user u ON p.id_pegawai = u.id
+                WHERE k.status_kegiatan = 'selesai'";
+
+        // Tambahkan filter kategori jika diperlukan (berdasarkan bulan/tahun)
+        if ($kategori && $kategori !== 'all') {
+            $sql .= " AND DATE_FORMAT(k.jadwal_kegiatan, '%Y-%m') = :kategori";
+        }
+
+        $sql .= " GROUP BY k.id_kegiatan, k.judul_kegiatan, k.deksripsi_kegiatan, k.jadwal_kegiatan, k.thumbnails_kegiatan, k.kehadiran_kegiatan, k.created_at
+                  ORDER BY k.jadwal_kegiatan DESC";
+
+        // Tambahkan limit jika diperlukan
+        if ($limit) {
+            $sql .= " LIMIT :limit";
+        }
+
+        $stmt = $pdo->prepare($sql);
+
+        if ($kategori && $kategori !== 'all') {
+            $stmt->bindParam(':kategori', $kategori);
+        }
+
+        if ($limit) {
+            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Process petugas info
+        foreach ($result as &$kegiatan) {
+            $petugas_array = [];
+            if (!empty($kegiatan['petugas_info'])) {
+                $petugas_list = explode(';', $kegiatan['petugas_info']);
+                foreach ($petugas_list as $petugas) {
+                    $petugas_data = explode('|', $petugas);
+                    if (count($petugas_data) == 2) {
+                        $petugas_array[] = [
+                            'nama' => $petugas_data[0],
+                            'nohp' => $petugas_data[1]
+                        ];
+                    }
+                }
+            }
+            $kegiatan['petugas'] = $petugas_array;
+        }
+
+        return $result;
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
+// Fungsi untuk mengambil kategori kegiatan berdasarkan bulan/tahun
+function getKegiatanCategories($pdo, $status = 'selesai')
+{
+    try {
+        $sql = "SELECT 
+                    DATE_FORMAT(jadwal_kegiatan, '%Y-%m') as month_key,
+                    DATE_FORMAT(jadwal_kegiatan, '%M %Y') as month_name,
+                    COUNT(*) as count
+                FROM tb_kegiatan 
+                WHERE status_kegiatan = :status
+                GROUP BY DATE_FORMAT(jadwal_kegiatan, '%Y-%m')
+                ORDER BY month_key DESC";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':status', $status);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
 // Handle AJAX requests only
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($request)) {
     header('Content-Type: application/json');
@@ -399,6 +487,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($request)) {
             echo json_encode($result);
             break;
 
+        case 'get_histori_kegiatan':
+            $limit = isset($_POST['limit']) ? (int)$_POST['limit'] : null;
+            $kategori = $_POST['kategori'] ?? null;
+
+            $histori = getHistoriKegiatan($pdo, $limit, $kategori);
+            $categories = getKegiatanCategories($pdo, 'selesai');
+
+            echo json_encode([
+                'success' => true,
+                'data' => $histori,
+                'categories' => $categories
+            ]);
+            break;
+
+        case 'get_kegiatan_categories':
+            $status = $_POST['status'] ?? 'selesai';
+            $categories = getKegiatanCategories($pdo, $status);
+
+            echo json_encode([
+                'success' => true,
+                'data' => $categories
+            ]);
+            break;
+
         default:
             echo json_encode([
                 'success' => false,
@@ -408,5 +520,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($request)) {
     }
     exit();
 }
-
-?>
