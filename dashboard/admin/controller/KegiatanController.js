@@ -1279,4 +1279,244 @@ $(document).ready(function () {
       }
     });
   }
+
+  $(document).on("click", ".complete-kegiatan-btn", function () {
+    const kegiatanId = $(this).data("id");
+    const kegiatanName = $(this).data("name");
+    showSelesaikanKegiatanForm(kegiatanId, kegiatanName);
+  });
+
+  // Handler untuk form submit selesaikan kegiatan
+  $("#selesaikanKegiatanForm").on("submit", function (e) {
+    e.preventDefault();
+    selesaikanKegiatan();
+  });
+
+  // Handler untuk upload multiple files
+  $("#dokumentasiFiles").on("change", function () {
+    previewMultipleFiles(this.files);
+  });
+
+  // Handler untuk drag & drop
+  $(".photo-upload-area").on("dragover", function (e) {
+    e.preventDefault();
+    $(this).addClass("dragover");
+  });
+
+  $(".photo-upload-area").on("dragleave", function (e) {
+    e.preventDefault();
+    $(this).removeClass("dragover");
+  });
+
+  $(".photo-upload-area").on("drop", function (e) {
+    e.preventDefault();
+    $(this).removeClass("dragover");
+
+    const files = e.originalEvent.dataTransfer.files;
+    if (files.length > 0) {
+      document.getElementById("dokumentasiFiles").files = files;
+      previewMultipleFiles(files);
+    }
+  });
+
+  // Handler untuk klik area upload
+  $(document).on("click", ".photo-upload-area", function (e) {
+    if (
+      e.target === this ||
+      $(e.target).hasClass("upload-placeholder") ||
+      $(e.target).closest(".upload-placeholder").length > 0
+    ) {
+      $("#dokumentasiFiles").trigger("click");
+    }
+  });
+
+  // Handler untuk hapus semua file
+  $("#clearAllFiles").on("click", function () {
+    $("#dokumentasiFiles").val("");
+    $("#filesPreviewContainer").hide();
+    $("#uploadPlaceholderDokumentasi").show();
+  });
+
+  // Fungsi untuk preview multiple files
+  function previewMultipleFiles(files) {
+    const previewContainer = $("#filesPreviewContainer");
+    const previewList = $("#filesPreviewList");
+    const placeholder = $("#uploadPlaceholderDokumentasi");
+
+    if (files.length === 0) {
+      previewContainer.hide();
+      placeholder.show();
+      return;
+    }
+
+    previewList.empty();
+
+    Array.from(files).forEach((file, index) => {
+      if (!validateFile(file)) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const isVideo = file.type.startsWith("video/");
+        const previewHtml = `
+                <div class="col-md-3 col-sm-4 col-6 mb-3">
+                    <div class="file-preview-item">
+                        <button type="button" class="btn btn-danger btn-sm remove-file" onclick="removeFilePreview(this, ${index})">
+                            <i class="bx bx-x"></i>
+                        </button>
+                        ${
+                          isVideo
+                            ? `<video class="file-preview-video" controls>
+                                <source src="${e.target.result}" type="${file.type}">
+                            </video>`
+                            : `<img src="${e.target.result}" class="file-preview-image" alt="Preview">`
+                        }
+                        <div class="mt-2">
+                            <small class="text-muted d-block">${
+                              file.name
+                            }</small>
+                            <small class="text-muted">${(
+                              file.size /
+                              1024 /
+                              1024
+                            ).toFixed(2)} MB</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        previewList.append(previewHtml);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    placeholder.hide();
+    previewContainer.show();
+  }
+
+  // Fungsi untuk validasi file
+  function validateFile(file) {
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/bmp",
+      "video/mp4",
+      "video/avi",
+      "video/mov",
+      "video/wmv",
+      "video/webm",
+    ];
+    const maxSize = 50 * 1024 * 1024; // 50MB
+
+    if (!allowedTypes.includes(file.type)) {
+      showAlert(
+        `File ${file.name} memiliki format yang tidak didukung!`,
+        "warning"
+      );
+      return false;
+    }
+
+    if (file.size > maxSize) {
+      showAlert(`File ${file.name} terlalu besar! Maksimal 50MB.`, "warning");
+      return false;
+    }
+
+    return true;
+  }
+
+  // Fungsi untuk remove file dari preview
+  function removeFilePreview(button, index) {
+    // Remove preview item
+    $(button).closest(".col-md-3").remove();
+
+    // Update file input (ini tricky karena file input tidak bisa diubah langsung)
+    const input = document.getElementById("dokumentasiFiles");
+    const dt = new DataTransfer();
+    const files = Array.from(input.files);
+
+    files.forEach((file, i) => {
+      if (i !== index) {
+        dt.items.add(file);
+      }
+    });
+
+    input.files = dt.files;
+
+    // Check if no files left
+    if (input.files.length === 0) {
+      $("#filesPreviewContainer").hide();
+      $("#uploadPlaceholderDokumentasi").show();
+    }
+  }
+
+  // Fungsi untuk menampilkan form selesaikan kegiatan
+  function showSelesaikanKegiatanForm(kegiatanId, kegiatanName) {
+    $("#kegiatanIdSelesai").val(kegiatanId);
+    $("#namaKegiatanSelesai").text(kegiatanName);
+
+    // Reset form
+    $("#selesaikanKegiatanForm")[0].reset();
+    $("#filesPreviewContainer").hide();
+    $("#uploadPlaceholderDokumentasi").show();
+
+    $("#selesaikanKegiatanModal").modal("show");
+  }
+
+  // Fungsi untuk selesaikan kegiatan
+  function selesaikanKegiatan() {
+    const form = $("#selesaikanKegiatanForm");
+    const formData = new FormData(form[0]);
+    const submitBtn = $("#submitSelesaiBtn");
+    const files = document.getElementById("dokumentasiFiles").files;
+
+    // Validasi minimal 1 file
+    if (files.length === 0) {
+      showAlert("Minimal upload 1 file dokumentasi!", "warning");
+      return;
+    }
+
+    // Disable submit button
+    submitBtn
+      .prop("disabled", true)
+      .html('<i class="bx bx-loader-alt bx-spin me-1"></i>Memproses...');
+
+    formData.append("request", "selesaikan_kegiatan");
+
+    // Show loading
+    showLoading("Menyelesaikan kegiatan dan mengupload dokumentasi...");
+
+    $.ajax({
+      type: "POST",
+      url: "controller/KegiatanController.php",
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: "json",
+      success: function (response) {
+        hideLoading();
+        submitBtn
+          .prop("disabled", false)
+          .html('<i class="bx bx-check me-1"></i>Selesaikan Kegiatan');
+
+        if (response.status === "success") {
+          showAlert(response.message, "success");
+          $("#selesaikanKegiatanModal").modal("hide");
+          loadKegiatanData(); // Reload data
+        } else {
+          showAlert(response.message, "danger");
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error("AJAX error:", xhr, status, error);
+        hideLoading();
+        submitBtn
+          .prop("disabled", false)
+          .html('<i class="bx bx-check me-1"></i>Selesaikan Kegiatan');
+        showAlert("Terjadi kesalahan saat memproses data!", "danger");
+      },
+    });
+  }
 });

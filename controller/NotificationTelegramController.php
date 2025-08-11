@@ -1,2 +1,0 @@
-<?php
-// controller/NotificationTelegramController.php

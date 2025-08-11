@@ -1,10 +1,13 @@
 <?php
-// kegiatan/controller/KegiatanController.php
+// kegiatan/controller/PenugasanController.php
 
 // Pastikan koneksi database tersedia
 if (!isset($pdo)) {
     require_once '../../../db/koneksi.php';
 }
+
+include_once 'NotificationTelegramController.php';
+
 $request = $_POST['request'] ?? '';
 
 function checkAdminAccess()
@@ -174,7 +177,6 @@ function updateProfile($pdo, $user_id, $data, $file = null)
         } else {
             throw new Exception('Gagal update profile');
         }
-
     } catch (Exception $e) {
         return [
             'success' => false,
@@ -277,7 +279,7 @@ function getDataPenugasan($pdo)
         ob_start();
 
         if (count($penugasans) > 0) {
-            ?>
+?>
             <table id="penugasanTable" class="table table-hover table-striped align-middle">
                 <thead class="table-dark">
                     <tr>
@@ -287,14 +289,14 @@ function getDataPenugasan($pdo)
                         <th scope="col" style="width: 20%;">Petugas</th>
                         <th scope="col" style="width: 15%;">Kontak</th>
                         <th scope="col" style="width: 10%;">Status</th>
-                        <th scope="col" style="width: 5%;">Aksi</th>
+                        <th scope="col" style="width: 10%;">Aksi</th> <!-- Lebar diubah untuk menampung 2 tombol -->
                     </tr>
                 </thead>
                 <tbody>
                     <?php
                     $no = 1;
                     foreach ($penugasans as $penugasan) {
-                        ?>
+                    ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
                             <td>
@@ -339,34 +341,45 @@ function getDataPenugasan($pdo)
                                 <?php } ?>
                             </td>
                             <td>
-                                <button type="button" class="btn btn-danger btn-sm delete-penugasan-btn"
-                                    data-id="<?php echo $penugasan['id_penugasan']; ?>"
-                                    data-name="<?php echo htmlspecialchars($penugasan['judul_kegiatan']); ?>"
-                                    data-petugas="<?php echo htmlspecialchars($penugasan['nama_petugas']); ?>" data-bs-toggle="tooltip"
-                                    data-bs-placement="top" title="Hapus Penugasan">
-                                    <i class="bx bx-trash"></i>
-                                </button>
+                                <div class="btn-group" role="group">
+                                    <!-- Tombol Kirim Notifikasi -->
+                                    <button type="button" class="btn btn-primary btn-sm send-notification-btn"
+                                        data-id="<?php echo $penugasan['id_penugasan']; ?>"
+                                        data-name="<?php echo htmlspecialchars($penugasan['judul_kegiatan']); ?>"
+                                        data-petugas="<?php echo htmlspecialchars($penugasan['nama_petugas']); ?>"
+                                        data-bs-toggle="tooltip" data-bs-placement="top" title="Kirim Notifikasi">
+                                        <i class="bx bx-bell"></i>
+                                    </button>
+
+                                    <!-- Tombol Hapus -->
+                                    <button type="button" class="btn btn-danger btn-sm delete-penugasan-btn"
+                                        data-id="<?php echo $penugasan['id_penugasan']; ?>"
+                                        data-name="<?php echo htmlspecialchars($penugasan['judul_kegiatan']); ?>"
+                                        data-petugas="<?php echo htmlspecialchars($penugasan['nama_petugas']); ?>"
+                                        data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus Penugasan">
+                                        <i class="bx bx-trash"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
-                        <?php
+                    <?php
                     }
                     ?>
                 </tbody>
             </table>
-            <?php
+        <?php
         } else {
-            ?>
+        ?>
             <div class="container-xxl flex-grow-1 container-p-y">
                 <div class="alert alert-info text-center" role="alert">
                     <i class="bx bx-info-circle me-2"></i>Belum ada data Penugasan.
                 </div>
             </div>
-            <?php
+<?php
         }
 
         $html = ob_get_clean();
         echo json_encode(['status' => 'success', 'html' => $html]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -392,7 +405,6 @@ function getKegiatanOptions($pdo)
             'status' => 'success',
             'data' => $kegiatans
         ]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -418,7 +430,6 @@ function getPetugasOptions($pdo)
             'status' => 'success',
             'data' => $petugas
         ]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -456,7 +467,6 @@ function getJadwalKegiatan($pdo)
             'status' => 'success',
             'jadwal' => $jadwalFormatted
         ]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -550,7 +560,6 @@ function checkPetugasConflict($pdo)
                 'has_conflict' => false
             ]);
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -560,7 +569,7 @@ function checkPetugasConflict($pdo)
     exit;
 }
 
-function addPenugasan($pdo)
+function addPenugasanWithNotification($pdo)
 {
     try {
         if (!isset($pdo)) {
@@ -569,8 +578,9 @@ function addPenugasan($pdo)
 
         $kegiatanId = $_POST['id_kegiatan'] ?? '';
         $petugasIds = $_POST['id_pegawai'] ?? [];
+        $sendNotification = $_POST['send_notification'] ?? 'yes'; // Default kirim notifikasi
 
-        // Validasi input
+        // Validasi input (sama seperti addPenugasan yang ada)
         if (empty($kegiatanId)) {
             throw new Exception('Kegiatan harus dipilih');
         }
@@ -589,7 +599,7 @@ function addPenugasan($pdo)
             throw new Exception('Kegiatan tidak ditemukan');
         }
 
-        // Cek konflik jadwal sebelum menyimpan
+        // Cek konflik jadwal (sama seperti addPenugasan yang ada)
         $selectedJadwal = $kegiatan['jadwal_kegiatan'];
         $conflictPetugas = [];
 
@@ -605,15 +615,11 @@ function addPenugasan($pdo)
             }
 
             // Cek konflik jadwal
-            $query = "SELECT DISTINCT
-                        u.nama as nama_petugas,
-                        k.judul_kegiatan
+            $query = "SELECT DISTINCT u.nama as nama_petugas, k.judul_kegiatan
                       FROM tb_penugasan p
                       JOIN tb_kegiatan k ON p.id_kegiatan = k.id_kegiatan
                       JOIN tb_user u ON p.id_pegawai = u.id
-                      WHERE p.id_pegawai = ? 
-                      AND k.jadwal_kegiatan = ?
-                      AND p.id_kegiatan != ?";
+                      WHERE p.id_pegawai = ? AND k.jadwal_kegiatan = ? AND p.id_kegiatan != ?";
 
             $stmt = $pdo->prepare($query);
             $stmt->execute([$petugasId, $selectedJadwal, $kegiatanId]);
@@ -655,15 +661,51 @@ function addPenugasan($pdo)
 
         if ($successCount === count($petugasIds)) {
             $pdo->commit();
+
+            // Kirim notifikasi jika diminta
+            $notificationMessage = '';
+            if ($sendNotification === 'yes') {
+                try {
+                    // Initialize Telegram Bot
+                    $botToken = "8483301260:AAFNldm582v3C0nteKirm-gnE8p1_xSzhS4"; // Ganti dengan token bot Anda
+                    $database = new mysqli(
+                        $_ENV['DB_HOST'] ?? "localhost",
+                        $_ENV['DB_USER'] ?? "root",
+                        $_ENV['DB_PASS'] ?? "",
+                        $_ENV['DB_NAME'] ?? "db_tomi"
+                    );
+
+                    $telegramController = new NotificationTelegramController($database, $botToken);
+
+                    // Kirim notifikasi otomatis
+                    $customMessage = "🔔 *PENUGASAN BARU*\n\n" .
+                        "Anda telah ditugaskan untuk kegiatan:\n\n" .
+                        "📋 *Kegiatan:* {$kegiatan['judul_kegiatan']}\n" .
+                        "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan'])) . "\n" .
+                        "📝 *Deskripsi:* " . substr($kegiatan['deksripsi_kegiatan'], 0, 150) . "...\n\n" .
+                        "💼 Mohon bersiap dan catat jadwal ini dengan baik!\n\n" .
+                        "🔗 *Link Kehadiran:* {$kegiatan['kehadiran_kegiatan']}";
+
+                    $notifResult = $telegramController->sendManualNotification($kegiatanId, $customMessage);
+
+                    if ($notifResult['status'] === 'success') {
+                        $notificationMessage = " Notifikasi berhasil dikirim ke {$notifResult['sent_count']} petugas.";
+                    } else {
+                        $notificationMessage = " Notifikasi gagal dikirim: {$notifResult['message']}";
+                    }
+                } catch (Exception $e) {
+                    $notificationMessage = " Notifikasi gagal dikirim: " . $e->getMessage();
+                }
+            }
+
             echo json_encode([
                 'status' => 'success',
-                'message' => 'Berhasil menambahkan ' . $successCount . ' penugasan petugas ke kegiatan "' . $kegiatan['judul_kegiatan'] . '"'
+                'message' => "Berhasil menambahkan {$successCount} penugasan petugas ke kegiatan \"{$kegiatan['judul_kegiatan']}\".{$notificationMessage}"
             ]);
         } else {
             $pdo->rollBack();
             throw new Exception('Gagal menambahkan beberapa penugasan');
         }
-
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
@@ -718,7 +760,6 @@ function deletePenugasan($pdo)
         } else {
             throw new Exception('Gagal menghapus penugasan dari database');
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -727,6 +768,66 @@ function deletePenugasan($pdo)
     }
     exit;
 }
+
+function sendManualNotification($pdo)
+{
+    try {
+        if (!isset($pdo)) {
+            throw new Exception('Database connection not available');
+        }
+
+        $penugasanId = $_POST['penugasan_id'] ?? '';
+
+        if (empty($penugasanId) || !is_numeric($penugasanId)) {
+            throw new Exception('ID Penugasan tidak valid');
+        }
+
+        // Ambil data penugasan dengan detail kegiatan
+        $query = "SELECT p.*, k.*, u.nama as nama_petugas, u.nohp
+                  FROM tb_penugasan p
+                  JOIN tb_kegiatan k ON p.id_kegiatan = k.id_kegiatan
+                  JOIN tb_user u ON p.id_pegawai = u.id
+                  WHERE p.id_penugasan = ?";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->execute([$penugasanId]);
+        $penugasan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$penugasan) {
+            throw new Exception('Data penugasan tidak ditemukan');
+        }
+
+        // Initialize Telegram Bot
+        $botToken = "8483301260:AAFNldm582v3C0nteKirm-gnE8p1_xSzhS4"; // Ganti dengan token bot Anda
+        $database = new mysqli(
+            $_ENV['DB_HOST'] ?? "localhost",
+            $_ENV['DB_USER'] ?? "root",
+            $_ENV['DB_PASS'] ?? "",
+            $_ENV['DB_NAME'] ?? "db_tomi"
+        );
+
+        $telegramController = new NotificationTelegramController($database, $botToken);
+
+        // Kirim notifikasi manual
+        $result = $telegramController->sendManualNotification($penugasan['id_kegiatan']);
+
+        if ($result['status'] === 'success') {
+            echo json_encode([
+                'status' => 'success',
+                'message' => "Notifikasi berhasil dikirim untuk kegiatan '{$penugasan['judul_kegiatan']}'. {$result['message']}"
+            ]);
+        } else {
+            throw new Exception($result['message']);
+        }
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
 
 // Handle request
 $request = $_POST['request'] ?? '';
@@ -767,7 +868,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         case 'add_penugasan':
             checkAdminAccess();
-            addPenugasan($pdo);
+            addPenugasanWithNotification($pdo); // Ganti dengan fungsi yang baru
+            break;
+
+        case 'send_notification':  // Case baru untuk notifikasi manual
+            checkAdminAccess();
+            sendManualNotification($pdo);
             break;
 
         case 'delete_penugasan':

@@ -315,12 +315,10 @@ $appSetting = getAppSetting($pdo);
                                             <div class="col-md-12">
                                                 <div class="mb-3">
                                                     <label for="id_kegiatan" class="form-label fw-semibold">
-                                                        <i class="fas fa-calendar-alt text-primary me-1"></i>Pilih
-                                                        Kegiatan
+                                                        <i class="fas fa-calendar-alt text-primary me-1"></i>Pilih Kegiatan
                                                         <span class="text-danger">*</span>
                                                     </label>
-                                                    <select class="form-select form-select-lg" id="id_kegiatan"
-                                                        name="id_kegiatan" required>
+                                                    <select class="form-select form-select-lg" id="id_kegiatan" name="id_kegiatan" required>
                                                         <option value="">Pilih Kegiatan</option>
                                                     </select>
                                                     <div class="invalid-feedback">
@@ -335,17 +333,38 @@ $appSetting = getAppSetting($pdo);
                                                 <i class="fas fa-users text-success me-1"></i>Pilih Petugas
                                                 <span class="text-danger">*</span>
                                             </label>
-                                            <select class="form-select" id="id_pegawai" name="id_pegawai[]" multiple
-                                                required>
+                                            <select class="form-select" id="id_pegawai" name="id_pegawai[]" multiple required>
                                                 <option value="">Pilih Petugas</option>
                                             </select>
                                             <div class="invalid-feedback">
                                                 Minimal satu petugas harus dipilih
                                             </div>
                                             <small class="text-muted">
-                                                <i class="fas fa-info-circle me-1"></i>Anda dapat memilih beberapa
-                                                petugas untuk satu kegiatan
+                                                <i class="fas fa-info-circle me-1"></i>Anda dapat memilih beberapa petugas untuk satu kegiatan
                                             </small>
+                                        </div>
+
+                                        <!-- Opsi Notifikasi Otomatis -->
+                                        <div class="mb-4">
+                                            <div class="card border-primary">
+                                                <div class="card-header bg-primary text-white">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="fas fa-bell me-2"></i>Pengaturan Notifikasi
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="send_notification" name="send_notification" value="yes" checked>
+                                                        <label class="form-check-label fw-semibold" for="send_notification">
+                                                            <i class="fas fa-paper-plane text-primary me-1"></i>Kirim notifikasi otomatis
+                                                        </label>
+                                                        <div class="form-text">
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            Petugas akan menerima notifikasi penugasan melalui Telegram Bot
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <!-- Info jadwal kegiatan -->
@@ -367,12 +386,10 @@ $appSetting = getAppSetting($pdo);
                                             <i class="fas fa-info-circle me-2"></i>
                                             <strong>Informasi:</strong>
                                             <ul class="mb-0 mt-2">
-                                                <li>Field yang bertanda <span class="text-danger">*</span> wajib diisi
-                                                </li>
-                                                <li>Petugas tidak dapat ditugaskan ke kegiatan yang jadwalnya bersamaan
-                                                </li>
-                                                <li>Anda dapat memilih beberapa petugas sekaligus untuk satu kegiatan
-                                                </li>
+                                                <li>Field yang bertanda <span class="text-danger">*</span> wajib diisi</li>
+                                                <li>Petugas tidak dapat ditugaskan ke kegiatan yang jadwalnya bersamaan</li>
+                                                <li>Anda dapat memilih beberapa petugas sekaligus untuk satu kegiatan</li>
+                                                <li>Notifikasi akan dikirim otomatis jika opsi diaktifkan</li>
                                             </ul>
                                         </div>
                                     </div>

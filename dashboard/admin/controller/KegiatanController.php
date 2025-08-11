@@ -174,7 +174,6 @@ function updateProfile($pdo, $user_id, $data, $file = null)
         } else {
             throw new Exception('Gagal update profile');
         }
-
     } catch (Exception $e) {
         return [
             'success' => false,
@@ -264,7 +263,7 @@ function getDataKegiatan($pdo)
         ob_start();
 
         if (count($kegiatans) > 0) {
-            ?>
+?>
             <table id="kegiatanTable" class="table table-hover table-striped align-middle">
                 <thead class="table-dark">
                     <tr>
@@ -280,7 +279,7 @@ function getDataKegiatan($pdo)
                     <?php
                     $no = 1;
                     foreach ($kegiatans as $kegiatan) {
-                        ?>
+                    ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
                             <td>
@@ -321,11 +320,19 @@ function getDataKegiatan($pdo)
                                         data-bs-placement="top" title="Kehadiran Kegiatan">
                                         <i class="bx bx-calendar"></i>
                                     </button>
-                                    <button type="button" class="btn btn-warning edit-kegiatan-btn"
-                                        data-id="<?php echo $kegiatan['id_kegiatan']; ?>" data-bs-toggle="tooltip"
-                                        data-bs-placement="top" title="Edit Kegiatan">
-                                        <i class="bx bx-edit"></i>
-                                    </button>
+                                    <?php if ($kegiatan['status_kegiatan'] === 'pending') { ?>
+                                        <button type="button" class="btn btn-success complete-kegiatan-btn"
+                                            data-id="<?php echo $kegiatan['id_kegiatan']; ?>"
+                                            data-name="<?php echo htmlspecialchars($kegiatan['judul_kegiatan']); ?>"
+                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Selesaikan Kegiatan">
+                                            <i class="bx bx-check"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-warning edit-kegiatan-btn"
+                                            data-id="<?php echo $kegiatan['id_kegiatan']; ?>" data-bs-toggle="tooltip"
+                                            data-bs-placement="top" title="Edit Kegiatan">
+                                            <i class="bx bx-edit"></i>
+                                        </button>
+                                    <?php } ?>
                                     <button type="button" class="btn btn-danger delete-kegiatan-btn"
                                         data-id="<?php echo $kegiatan['id_kegiatan']; ?>"
                                         data-name="<?php echo htmlspecialchars($kegiatan['judul_kegiatan']); ?>"
@@ -335,26 +342,25 @@ function getDataKegiatan($pdo)
                                 </div>
                             </td>
                         </tr>
-                        <?php
+                    <?php
                     }
                     ?>
                 </tbody>
             </table>
-            <?php
+        <?php
         } else {
-            ?>
+        ?>
             <div class="container-xxl flex-grow-1 container-p-y">
                 <div class="alert alert-info text-center" role="alert">
                     <i class="bx bx-info-circle me-2"></i>Belum ada data Kegiatan.
                 </div>
             </div>
 
-            <?php
+        <?php
         }
 
         $html = ob_get_clean();
         echo json_encode(['status' => 'success', 'html' => $html]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -385,7 +391,7 @@ function getDetailKegiatan($pdo, $kegiatanId)
 
         if ($kegiatan) {
             ob_start();
-            ?>
+        ?>
             <!-- Responsive Layout -->
             <div class="row g-3">
                 <!-- Thumbnail Section - Display media preview -->
@@ -573,13 +579,12 @@ function getDetailKegiatan($pdo, $kegiatanId)
                     modal.show();
                 }
             </script>
-            <?php
+        <?php
             $html = ob_get_clean();
             echo json_encode(['status' => 'success', 'html' => $html]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Data kegiatan tidak ditemukan']);
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -616,7 +621,6 @@ function getKegiatanById($pdo, $kegiatanId)
                 'message' => 'Data kegiatan tidak ditemukan'
             ]);
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -701,7 +705,6 @@ function addKegiatan($pdo)
         } else {
             throw new Exception('Gagal menambahkan kegiatan');
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -768,7 +771,6 @@ function deleteKegiatan($pdo, $kegiatanId, $kegiatanName)
         } else {
             throw new Exception('Gagal menghapus kegiatan dari database');
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -890,7 +892,6 @@ function updateKegiatan($pdo)
         } else {
             throw new Exception('Gagal mengupdate data kegiatan');
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -1029,7 +1030,7 @@ function getKehadiranKegiatan($pdo, $kegiatanId)
                                     <?php
                                     $no = 1;
                                     foreach ($kehadiranData['data'] as $row) {
-                                        ?>
+                                    ?>
                                         <tr>
                                             <td><?php echo $no++; ?></td>
                                             <td>
@@ -1086,7 +1087,7 @@ function getKehadiranKegiatan($pdo, $kegiatanId)
                                                 <?php } ?>
                                             </td>
                                         </tr>
-                                        <?php
+                                    <?php
                                     }
                                     ?>
                                 </tbody>
@@ -1111,13 +1112,13 @@ function getKehadiranKegiatan($pdo, $kegiatanId)
         </div>
 
         <script>
-            $(document).ready(function () {
+            $(document).ready(function() {
                 // Initialize search and filter
-                $('#searchKehadiran').on('keyup', function () {
+                $('#searchKehadiran').on('keyup', function() {
                     filterTable();
                 });
 
-                $('#filterStatus').on('change', function () {
+                $('#filterStatus').on('change', function() {
                     filterTable();
                 });
 
@@ -1125,7 +1126,7 @@ function getKehadiranKegiatan($pdo, $kegiatanId)
                     const searchValue = $('#searchKehadiran').val().toLowerCase();
                     const statusFilter = $('#filterStatus').val();
 
-                    $('#kehadiranTable tbody tr').each(function () {
+                    $('#kehadiranTable tbody tr').each(function() {
                         const row = $(this);
                         const instansi = row.find('td:nth-child(2)').text().toLowerCase();
                         const pimpinan = row.find('td:nth-child(3)').text().toLowerCase();
@@ -1148,10 +1149,9 @@ function getKehadiranKegiatan($pdo, $kegiatanId)
                 }
             });
         </script>
-        <?php
+<?php
         $html = ob_get_clean();
         echo json_encode(['status' => 'success', 'html' => $html]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -1219,7 +1219,6 @@ function fetchJsonData($jsonUrl)
         }
 
         return $jsonData;
-
     } catch (Exception $e) {
         error_log("fetchJsonData Error: " . $e->getMessage());
         return false;
@@ -1303,13 +1302,144 @@ function parseKehadiranJson($jsonData)
                 }
             }
         }
-
     } catch (Exception $e) {
         error_log("parseKehadiranJson Error: " . $e->getMessage());
         throw new Exception('Gagal memproses data JSON: ' . $e->getMessage());
     }
 
     return $result;
+}
+
+function selesaikanKegiatan($pdo)
+{
+    try {
+        if (!isset($pdo)) {
+            throw new Exception('Database connection not available');
+        }
+
+        $kegiatanId = $_POST['kegiatanIdSelesai'] ?? null;
+
+        if (empty($kegiatanId) || !is_numeric($kegiatanId)) {
+            throw new Exception('ID Kegiatan tidak valid');
+        }
+
+        // Cek apakah kegiatan ada dan belum selesai
+        $checkQuery = "SELECT * FROM tb_kegiatan WHERE id_kegiatan = ? AND status_kegiatan != 'selesai'";
+        $checkStmt = $pdo->prepare($checkQuery);
+        $checkStmt->execute([$kegiatanId]);
+        $kegiatan = $checkStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$kegiatan) {
+            throw new Exception('Kegiatan tidak ditemukan atau sudah selesai');
+        }
+
+        // Validasi file upload
+        if (!isset($_FILES['dokumentasiFiles']) || empty($_FILES['dokumentasiFiles']['name'][0])) {
+            throw new Exception('Minimal upload 1 file dokumentasi');
+        }
+
+        $uploadPath = '../../../assets/img/dokumentasi/';
+
+        // Buat folder jika belum ada
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+
+        $uploadedFiles = [];
+        $allowedTypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'image/bmp',
+            'video/mp4',
+            'video/avi',
+            'video/mov',
+            'video/wmv',
+            'video/webm'
+        ];
+        $maxSize = 50 * 1024 * 1024; // 50MB
+
+        // Start transaction
+        $pdo->beginTransaction();
+
+        try {
+            // Process multiple files
+            $files = $_FILES['dokumentasiFiles'];
+            $fileCount = count($files['name']);
+
+            for ($i = 0; $i < $fileCount; $i++) {
+                if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                    // Validasi tipe file
+                    if (!in_array($files['type'][$i], $allowedTypes)) {
+                        throw new Exception("File {$files['name'][$i]} memiliki format yang tidak didukung");
+                    }
+
+                    // Validasi ukuran file
+                    if ($files['size'][$i] > $maxSize) {
+                        throw new Exception("File {$files['name'][$i]} terlalu besar (max 50MB)");
+                    }
+
+                    // Generate unique filename
+                    $extension = pathinfo($files['name'][$i], PATHINFO_EXTENSION);
+                    $filename = 'dokumentasi_' . $kegiatanId . '_' . time() . '_' . $i . '.' . $extension;
+                    $fullPath = $uploadPath . $filename;
+
+                    // Upload file
+                    if (move_uploaded_file($files['tmp_name'][$i], $fullPath)) {
+                        $uploadedFiles[] = $filename;
+
+                        // Insert ke tb_record_kegiatan
+                        $insertRecordQuery = "INSERT INTO tb_record_kegiatan (id_kegiatan, record_kegiatan) VALUES (?, ?)";
+                        $insertRecordStmt = $pdo->prepare($insertRecordQuery);
+                        $insertRecordStmt->execute([$kegiatanId, $filename]);
+                    } else {
+                        throw new Exception("Gagal upload file {$files['name'][$i]}");
+                    }
+                }
+            }
+
+            if (empty($uploadedFiles)) {
+                throw new Exception('Tidak ada file yang berhasil diupload');
+            }
+
+            // Update status kegiatan menjadi selesai
+            $updateQuery = "UPDATE tb_kegiatan SET status_kegiatan = 'selesai', updated_at = NOW() WHERE id_kegiatan = ?";
+            $updateStmt = $pdo->prepare($updateQuery);
+            $updateResult = $updateStmt->execute([$kegiatanId]);
+
+            if (!$updateResult) {
+                throw new Exception('Gagal update status kegiatan');
+            }
+
+            // Commit transaction
+            $pdo->commit();
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Kegiatan berhasil diselesaikan dengan ' . count($uploadedFiles) . ' file dokumentasi'
+            ]);
+        } catch (Exception $e) {
+            // Rollback transaction
+            $pdo->rollback();
+
+            // Hapus file yang sudah terupload jika ada error
+            foreach ($uploadedFiles as $file) {
+                if (file_exists($uploadPath . $file)) {
+                    unlink($uploadPath . $file);
+                }
+            }
+
+            throw $e;
+        }
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ]);
+    }
+    exit;
 }
 
 // Handle AJAX requests
@@ -1382,6 +1512,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['status' => 'error', 'message' => 'ID Kegiatan tidak ditemukan']);
             }
             break;
+
+        case 'selesaikan_kegiatan':
+            checkAdminAccess();
+            selesaikanKegiatan($pdo);
+            break;
+
 
         default:
             echo json_encode(['success' => false, 'message' => 'Request tidak valid']);

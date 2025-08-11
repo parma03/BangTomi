@@ -9,10 +9,33 @@ include 'db/koneksi.php';
 
 // Include HomeController untuk menggunakan fungsi getAppSetting
 include 'controller/HomeController.php';
-include 'controller/NotificationTelegramController.php';
 
 // Ambil data app setting
 $appSetting = getAppSetting($pdo);
+
+// Fungsi untuk memeriksa apakah file video exists
+function isValidVideoFile($filename)
+{
+  if (empty($filename) || $filename === '-' || $filename === 'favicon.ico') {
+    return false;
+  }
+
+  $videoPath = 'assets/img/appsetting/' . $filename;
+
+  // Cek apakah file exists
+  if (!file_exists($videoPath)) {
+    return false;
+  }
+
+  // Cek ekstensi file
+  $allowedExtensions = ['mp4', 'webm', 'ogg', 'avi', 'mov'];
+  $fileExtension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+  return in_array($fileExtension, $allowedExtensions);
+}
+
+// Gunakan fungsi ini di hero section
+$hasValidVideo = isValidVideoFile($appSetting['video_header']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -598,16 +621,28 @@ $appSetting = getAppSetting($pdo);
     <!-- Hero Section -->
     <section id="hero" class="hero section dark-background">
 
-      <img src="assets/img/hero-bg.jpg" alt="" data-aos="fade-in">
+      <img src="assets/img/appsetting/<?php echo $appSetting['background_header'] ? htmlspecialchars($appSetting['background_header']) : "-"; ?>" alt="" data-aos="fade-in">
 
       <div class="container d-flex flex-column align-items-center">
-        <h2 data-aos="fade-up" data-aos-delay="100">PLAN. LAUNCH. GROW.</h2>
-        <p data-aos="fade-up" data-aos-delay="200">We are team of talented designers making websites with Bootstrap</p>
+        <h2 data-aos="fade-up" data-aos-delay="100">
+          <?php echo $appSetting['name_header'] ? htmlspecialchars($appSetting['name_header']) : "-"; ?>
+        </h2>
+        <p data-aos="fade-up" data-aos-delay="200">
+          <?php echo $appSetting['description_header'] ? htmlspecialchars($appSetting['description_header']) : "-"; ?>
+        </p>
         <div class="d-flex mt-4" data-aos="fade-up" data-aos-delay="300">
-          <a href="#about" class="btn-get-started">Get Started</a>
-          <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8"
-            class="glightbox btn-watch-video d-flex align-items-center"><i class="bi bi-play-circle"></i><span>Watch
-              Video</span></a>
+          <a href="#profile" class="btn-get-started">Get Started</a>
+          <?php if (!empty($appSetting['video_header']) && $appSetting['video_header'] !== '-'): ?>
+            <a href="assets/img/appsetting/<?php echo htmlspecialchars($appSetting['video_header']); ?>"
+              class="glightbox btn-watch-video d-flex align-items-center"
+              data-type="video">
+              <i class="bi bi-play-circle"></i><span>Watch Video</span>
+            </a>
+          <?php else: ?>
+            <a href="#profile" class="btn-watch-video d-flex align-items-center">
+              <i class="bi bi-info-circle"></i><span>Learn More</span>
+            </a>
+          <?php endif; ?>
         </div>
       </div>
 
@@ -985,18 +1020,6 @@ $appSetting = getAppSetting($pdo);
       </div>
     </div>
 
-    <div class="container copyright text-center mt-4">
-      <p>© <span>Copyright</span> <strong class="px-1 sitename">ThemeWagon</strong> <span>All Rights Reserved</span></p>
-      <div class="credits">
-        <!-- All the links in the footer should remain intact. -->
-        <!-- You can delete the links only if you've purchased the pro version. -->
-        <!-- Licensing information: https://bootstrapmade.com/license/ -->
-        <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
-        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> Distributed by <a
-          href=“https://themewagon.com>ThemeWagon
-      </div>
-    </div>
-
   </footer>
 
   <!-- Scroll Top -->
@@ -1021,6 +1044,49 @@ $appSetting = getAppSetting($pdo);
 
   <!-- Controllers -->
   <script src="controller/HomeController.js"></script>
+  <script>
+    // Fix untuk video GLightbox
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inisialisasi GLightbox dengan konfigurasi yang lebih aman
+      const lightbox = GLightbox({
+        selector: '.glightbox',
+        touchNavigation: true,
+        loop: true,
+        autoplayVideos: false, // Matikan autoplay untuk menghindari error
+        videosWidth: '90vw',
+        videosHeight: '80vh',
+        onOpen: function() {
+          console.log('GLightbox opened');
+        },
+        onClose: function() {
+          console.log('GLightbox closed');
+        }
+      });
+
+      // Validasi video sebelum membuka lightbox
+      document.querySelectorAll('.glightbox[data-type="video"]').forEach(function(element) {
+        element.addEventListener('click', function(e) {
+          const videoSrc = this.getAttribute('href');
+
+          // Cek apakah file video ada
+          fetch(videoSrc, {
+              method: 'HEAD'
+            })
+            .then(response => {
+              if (!response.ok) {
+                e.preventDefault();
+                alert('Video tidak dapat dimuat. File mungkin tidak tersedia.');
+              }
+            })
+            .catch(error => {
+              e.preventDefault();
+              console.error('Error checking video:', error);
+              alert('Video tidak dapat dimuat. Periksa koneksi internet Anda.');
+            });
+        });
+      });
+    });
+  </script>
 </body>
 
 </html>

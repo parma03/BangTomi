@@ -145,9 +145,42 @@ $appSetting = getAppSetting($pdo);
             left: 100%;
         }
 
+        .file-preview-item {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .file-preview-item .remove-file {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            z-index: 10;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .file-preview-video {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .file-preview-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
         .photo-upload-area.dragover {
-            border-color: #28a745;
-            background: linear-gradient(145deg, #d4edda, #f8f9fa);
+            border-color: #28a745 !important;
+            background: linear-gradient(145deg, #d4edda, #f8f9fa) !important;
             transform: scale(1.02);
         }
 
@@ -315,6 +348,88 @@ $appSetting = getAppSetting($pdo);
                                         <i class="bx bx-edit me-1"></i>Edit Kegiatan
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Selesaikan Kegiatan -->
+                    <div class="modal fade" id="selesaikanKegiatanModal" tabindex="-1" aria-labelledby="selesaikanKegiatanModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content border-0 shadow-lg">
+                                <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title" id="selesaikanKegiatanModalLabel">
+                                        <i class="bx bx-check-circle me-2"></i>Selesaikan Kegiatan
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form id="selesaikanKegiatanForm" enctype="multipart/form-data">
+                                    <div class="modal-body p-4">
+                                        <input type="hidden" id="kegiatanIdSelesai" name="kegiatanIdSelesai">
+
+                                        <!-- Info Kegiatan -->
+                                        <div class="alert alert-info border-0 rounded-3 mb-4" role="alert">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bx bx-info-circle me-3 fs-4"></i>
+                                                <div>
+                                                    <h6 class="mb-1">Kegiatan akan diselesaikan:</h6>
+                                                    <span id="namaKegiatanSelesai" class="fw-bold"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Upload Area untuk Multiple Files -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-semibold">
+                                                <i class="bx bx-images text-success me-1"></i>Dokumentasi Kegiatan
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="photo-upload-area border-2 border-dashed border-success rounded-4 p-4 text-center position-relative"
+                                                style="cursor: pointer; transition: all 0.3s ease; min-height: 200px;">
+                                                <input type="file" class="form-control" id="dokumentasiFiles" name="dokumentasiFiles[]"
+                                                    accept="image/*,video/*" multiple style="display: none;" required>
+
+                                                <div id="uploadPlaceholderDokumentasi" class="upload-placeholder">
+                                                    <div class="upload-icon mb-3">
+                                                        <i class="bx bx-cloud-upload bx-lg text-success"></i>
+                                                    </div>
+                                                    <h6 class="mb-2">Klik untuk memilih file atau drag & drop di sini</h6>
+                                                    <small class="text-muted">
+                                                        Format: JPG, PNG, GIF, WEBP, MP4, AVI, MOV, WMV, WEBM (Max: 50MB per file)<br>
+                                                        <strong>Multiple files diperbolehkan</strong>
+                                                    </small>
+                                                </div>
+
+                                                <!-- Preview Container -->
+                                                <div id="filesPreviewContainer" style="display: none;" class="mt-3">
+                                                    <div class="row" id="filesPreviewList"></div>
+                                                    <button type="button" class="btn btn-outline-danger mt-3" id="clearAllFiles">
+                                                        <i class="bx bx-trash me-1"></i>Hapus Semua File
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="invalid-feedback" id="dokumentasiError" style="display: none;"></div>
+                                        </div>
+
+                                        <!-- Warning Box -->
+                                        <div class="alert alert-warning border-0 rounded-3" role="alert">
+                                            <i class="bx bx-error-circle me-2"></i>
+                                            <strong>Perhatian:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                <li>Kegiatan yang sudah diselesaikan tidak dapat diubah statusnya</li>
+                                                <li>Pastikan dokumentasi yang diupload sudah benar</li>
+                                                <li>Minimal upload 1 file dokumentasi</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer bg-light">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="bx bx-x me-1"></i>Batal
+                                        </button>
+                                        <button type="submit" class="btn btn-success btn-lg" id="submitSelesaiBtn">
+                                            <i class="bx bx-check me-1"></i>Selesaikan Kegiatan
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>

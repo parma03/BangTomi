@@ -1,4 +1,4 @@
-// kegiatan/controller/KegiatanController.js
+// kegiatan/controller/PenugasanController.js
 
 function showAlert(message, type = "info", duration = 5000) {
   const existingAlerts = document.querySelectorAll(".custom-alert");
@@ -376,6 +376,28 @@ $(document).ready(function () {
     dropdownParent: $("#penugasanFormModal"),
   });
 
+  $(document).on("click", ".send-notification-btn", function () {
+    const penugasanId = $(this).data("id");
+    const kegiatanName = $(this).data("name");
+    const petugasName = $(this).data("petugas");
+
+    console.log("Send notification button clicked:", {
+      penugasanId,
+      kegiatanName,
+      petugasName,
+    });
+
+    if (!penugasanId || !kegiatanName || !petugasName) {
+      showAlert(
+        "Data penugasan tidak lengkap! Refresh halaman dan coba lagi.",
+        "warning"
+      );
+      return;
+    }
+
+    sendNotification(penugasanId, kegiatanName, petugasName);
+  });
+
   // Event handlers
   $(document).on("click", ".add-penugasan-btn", function () {
     showPenugasanForm();
@@ -582,6 +604,76 @@ $(document).ready(function () {
     $("#idPenugasan").val("");
 
     modal.modal("show");
+  }
+
+  function sendNotification(penugasanId, kegiatanName, petugasName) {
+    Swal.fire({
+      title: "Kirim Notifikasi",
+      html: `
+        <div class="text-center">
+          <div class="mb-3">
+            <i class="fas fa-bell fa-3x text-primary mb-3"></i>
+          </div>
+          <p>Apakah Anda yakin ingin mengirim notifikasi kepada</p>
+          <strong class="text-primary">"${petugasName}"</strong>
+          <p>untuk kegiatan</p>
+          <strong class="text-info">"${kegiatanName}"</strong>?
+          <div class="alert alert-info mt-3 border-0 rounded-3">
+            <i class="fas fa-info-circle me-2"></i>
+            <small>Notifikasi akan dikirim melalui Telegram Bot</small>
+          </div>
+        </div>
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#0d6efd",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText:
+        '<i class="fas fa-paper-plane me-1"></i>Kirim Notifikasi',
+      cancelButtonText: '<i class="fas fa-times me-1"></i>Batal',
+      customClass: {
+        popup: "rounded-4 shadow-lg",
+        confirmButton: "btn-lg",
+        cancelButton: "btn-lg",
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Show loading
+        showLoading("Mengirim notifikasi...");
+
+        $.ajax({
+          type: "POST",
+          url: "controller/PenugasanController.php",
+          data: {
+            request: "send_notification",
+            penugasan_id: penugasanId,
+          },
+          dataType: "json",
+          success: function (response) {
+            hideLoading();
+
+            if (response.status === "success") {
+              Swal.fire({
+                title: "Berhasil!",
+                text: response.message,
+                icon: "success",
+                confirmButtonText: "OK",
+                customClass: {
+                  popup: "rounded-4 shadow-lg",
+                },
+              });
+            } else {
+              showAlert(response.message, "danger");
+            }
+          },
+          error: function (xhr, status, error) {
+            console.error("AJAX error:", xhr, status, error);
+            hideLoading();
+            showAlert("Terjadi kesalahan saat mengirim notifikasi!", "danger");
+          },
+        });
+      }
+    });
   }
 
   function checkJadwalKegiatan(kegiatanId) {
