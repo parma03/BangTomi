@@ -3,7 +3,7 @@
 if (session_status() == PHP_SESSION_NONE) {
   session_start();
 }
-ICANG KONTOL
+
 // Include database connection
 include 'db/koneksi.php';
 
