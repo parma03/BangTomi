@@ -385,7 +385,7 @@ function createKegiatanCard(kegiatan) {
     kegiatan.thumbnails_kegiatan.toLowerCase().includes(".webm") ||
     kegiatan.thumbnails_kegiatan.toLowerCase().includes(".ogg");
 
-  const thumbnailPath = `../assets/img/thumb/${kegiatan.thumbnails_kegiatan}`;
+  const thumbnailPath = `assets/img/thumb/${kegiatan.thumbnails_kegiatan}`;
 
   // Create unique accordion ID for each kegiatan
   const accordionId = `contactAccordion-${kegiatan.id_kegiatan}`;
@@ -450,7 +450,7 @@ function createKegiatanCard(kegiatan) {
               <source src="${thumbnailPath}" type="video/mp4">
               Browser Anda tidak mendukung video.
             </video>`
-              : `<img src="${thumbnailPath}" alt="${kegiatan.judul_kegiatan}" onerror="this.src='assets/img/placeholder.jpg'">`
+              : `<img src="${thumbnailPath}" alt="${kegiatan.judul_kegiatan}" onerror="this.src='assets/img/about-2.jpg'">`
           }
           <div class="kegiatan-date-badge">
             ${jadwal.getDate()} ${jadwal.toLocaleDateString("id-ID", {
@@ -757,7 +757,7 @@ function createHistoriCard(kegiatan, monthKey) {
               </video>`
             : `<img src="${thumbnailPath}" class="img-fluid" alt="${kegiatan.judul_kegiatan}" 
                  style="width: 100%; height: 250px; object-fit: cover;"
-                 onerror="this.src='assets/img/placeholder.jpg'">`
+                 onerror="this.src='assets/img/about-2.jpg'">`
         }
         <div class="portfolio-info">
           <h4>${kegiatan.judul_kegiatan}</h4>

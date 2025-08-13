@@ -356,7 +356,7 @@ if ($kegiatan_id > 0) {
 
                                     <div class="swiper-wrapper align-items-center">
                                         <div class="swiper-slide">
-                                            <img src="<?php echo $thumbnailPath; ?>" alt="<?php echo htmlspecialchars($kegiatan['judul_kegiatan']); ?>" onerror="this.src='assets/img/placeholder.jpg'">
+                                            <img src="<?php echo $thumbnailPath; ?>" alt="<?php echo htmlspecialchars($kegiatan['judul_kegiatan']); ?>" onerror="this.src='assets/img/about-2.jpg'">
                                         </div>
                                     </div>
                                     <div class="swiper-pagination"></div>
