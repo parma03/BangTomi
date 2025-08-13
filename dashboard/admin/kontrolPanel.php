@@ -19,7 +19,7 @@ $appSetting = getAppSetting($pdo);
 
     <meta name="description" content="" />
     <link rel="icon" type="image/x-icon"
-        href="../../../assets/img/favicon/<?php echo htmlspecialchars($appSetting['logo']); ?>" />
+        href="../../assets/img/favicon/<?php echo htmlspecialchars($appSetting['logo']); ?>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -264,11 +264,11 @@ $appSetting = getAppSetting($pdo);
                                                 <strong>Logo Saat Ini:</strong><br>
                                                 <?php if (!empty($appSetting['logo'])): ?>
                                                     <div class="preview-container mt-2">
-                                                        <img src="../../../assets/img/favicon/<?php echo htmlspecialchars($appSetting['logo']); ?>"
+                                                        <img src="../../assets/img/favicon/<?php echo htmlspecialchars($appSetting['logo']); ?>"
                                                             alt="Current Logo"
                                                             class="current-logo-preview"
                                                             style="cursor: pointer;"
-                                                            onclick="showMediaPreview('../../../assets/img/favicon/<?php echo htmlspecialchars($appSetting['logo']); ?>', 'image', 'Current Logo')">
+                                                            onclick="showMediaPreview('../../assets/img/favicon/<?php echo htmlspecialchars($appSetting['logo']); ?>', 'image', 'Current Logo')">
                                                     </div>
                                                     <small class="text-white-50 mt-2 d-block">Klik untuk memperbesar</small>
                                                 <?php else: ?>
@@ -294,10 +294,10 @@ $appSetting = getAppSetting($pdo);
                                                 <div class="file-info">
                                                     <h6 class="text-white mb-2">Background Header:</h6>
                                                     <div class="preview-container">
-                                                        <img src="../../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['background_header']); ?>"
+                                                        <img src="../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['background_header']); ?>"
                                                             alt="Background Header"
                                                             style="cursor: pointer;"
-                                                            onclick="showMediaPreview('../../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['background_header']); ?>', 'image', 'Background Header')">
+                                                            onclick="showMediaPreview('../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['background_header']); ?>', 'image', 'Background Header')">
                                                     </div>
                                                     <small class="text-white-50 mt-2 d-block">Klik untuk memperbesar</small>
                                                 </div>
@@ -308,8 +308,8 @@ $appSetting = getAppSetting($pdo);
                                                     <h6 class="text-white mb-2">Video Header:</h6>
                                                     <div class="preview-container">
                                                         <video controls style="cursor: pointer;"
-                                                            onclick="showMediaPreview('../../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['video_header']); ?>', 'video', 'Video Header')">
-                                                            <source src="../../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['video_header']); ?>" type="video/mp4">
+                                                            onclick="showMediaPreview('../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['video_header']); ?>', 'video', 'Video Header')">
+                                                            <source src="../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['video_header']); ?>" type="video/mp4">
                                                         </video>
                                                     </div>
                                                     <small class="text-white-50 mt-2 d-block">Klik untuk memperbesar</small>
