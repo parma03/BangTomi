@@ -174,7 +174,6 @@ function updateProfile($pdo, $user_id, $data, $file = null)
         } else {
             throw new Exception('Gagal update profile');
         }
-
     } catch (Exception $e) {
         return [
             'success' => false,
@@ -216,7 +215,7 @@ function getProfileDisplay($nama, $profile)
     $profile_path = "../../../assets/img/avatars/";
 
     if (!empty($profile) && file_exists($profile_path . $profile)) {
-        return '<img src="' . $profile_path . htmlspecialchars($profile) . '" 
+        return '<img src="../../assets/img/avatars/' . htmlspecialchars($profile) . '" 
                      alt="Profile" 
                      class="rounded-circle" 
                      style="width: 35px; height: 35px; object-fit: cover;">';
@@ -233,7 +232,7 @@ function getLargeProfileDisplay($nama, $profile)
     $profile_path = "../../../assets/img/avatars/";
 
     if (!empty($profile) && file_exists($profile_path . $profile)) {
-        return '<img src="' . $profile_path . htmlspecialchars($profile) . '" 
+        return '<img src="../../assets/img/avatars/' . htmlspecialchars($profile) . '" 
                      alt="Profile" 
                      class="rounded-circle mx-auto mb-3" 
                      style="width: 80px; height: 80px; object-fit: cover; display: block;">';
@@ -264,7 +263,7 @@ function getDataAdmin($pdo)
         ob_start();
 
         if (count($admins) > 0) {
-            ?>
+?>
             <table id="adminTable" class="table table-hover table-striped align-middle">
                 <thead class="table-dark">
                     <tr>
@@ -280,7 +279,7 @@ function getDataAdmin($pdo)
                     <?php
                     $no = 1;
                     foreach ($admins as $admin) {
-                        ?>
+                    ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
                             <td>
@@ -324,25 +323,24 @@ function getDataAdmin($pdo)
                                 </div>
                             </td>
                         </tr>
-                        <?php
+                    <?php
                     }
                     ?>
                 </tbody>
             </table>
-            <?php
+        <?php
         } else {
-            ?>
+        ?>
             <div class="container-xxl flex-grow-1 container-p-y">
                 <div class="alert alert-info text-center" role="alert">
                     <i class="bx bx-info-circle me-2"></i>Belum ada data Administrator.
                 </div>
             </div>
-            <?php
+        <?php
         }
 
         $html = ob_get_clean();
         echo json_encode(['status' => 'success', 'html' => $html]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -372,7 +370,7 @@ function getDetailAdmin($pdo, $adminId)
 
         if ($admin) {
             ob_start();
-            ?>
+        ?>
             <!-- Responsive Layout -->
             <div class="row g-3">
                 <!-- Profile Section - Stack on mobile, side-by-side on larger screens -->
@@ -475,13 +473,12 @@ function getDetailAdmin($pdo, $adminId)
                     </div>
                 </div>
             </div>
-            <?php
+<?php
             $html = ob_get_clean();
             echo json_encode(['status' => 'success', 'html' => $html]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Data admin tidak ditemukan']);
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -517,7 +514,6 @@ function getAdminById($pdo, $adminId)
                 'message' => 'Data admin tidak ditemukan'
             ]);
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -627,7 +623,6 @@ function addAdmin($pdo)
         } else {
             throw new Exception('Gagal menambahkan admin');
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -693,7 +688,6 @@ function deleteAdmin($pdo, $adminId, $adminName)
         } else {
             throw new Exception('Gagal menghapus admin dari database');
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -858,7 +852,6 @@ function updateAdmin($pdo)
         } else {
             throw new Exception('Gagal mengupdate data admin');
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',

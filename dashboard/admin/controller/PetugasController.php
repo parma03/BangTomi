@@ -174,7 +174,6 @@ function updateProfile($pdo, $user_id, $data, $file = null)
         } else {
             throw new Exception('Gagal update profile');
         }
-
     } catch (Exception $e) {
         return [
             'success' => false,
@@ -216,7 +215,7 @@ function getProfileDisplay($nama, $profile)
     $profile_path = "../../../assets/img/avatars/";
 
     if (!empty($profile) && file_exists($profile_path . $profile)) {
-        return '<img src="' . $profile_path . htmlspecialchars($profile) . '" 
+        return '<img src="../../assets/img/avatars/' . htmlspecialchars($profile) . '" 
                      alt="Profile" 
                      class="rounded-circle" 
                      style="width: 35px; height: 35px; object-fit: cover;">';
@@ -233,7 +232,7 @@ function getLargeProfileDisplay($nama, $profile)
     $profile_path = "../../../assets/img/avatars/";
 
     if (!empty($profile) && file_exists($profile_path . $profile)) {
-        return '<img src="' . $profile_path . htmlspecialchars($profile) . '" 
+        return '<img src="../../assets/img/avatars/' . htmlspecialchars($profile) . '" 
                      alt="Profile" 
                      class="rounded-circle mx-auto mb-3" 
                      style="width: 80px; height: 80px; object-fit: cover; display: block;">';
@@ -264,7 +263,7 @@ function getDataPetugas($pdo)
         ob_start();
 
         if (count($petugass) > 0) {
-            ?>
+?>
             <table id="petugasTable" class="table table-hover table-striped align-middle">
                 <thead class="table-dark">
                     <tr>
@@ -280,7 +279,7 @@ function getDataPetugas($pdo)
                     <?php
                     $no = 1;
                     foreach ($petugass as $petugas) {
-                        ?>
+                    ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
                             <td>
@@ -326,26 +325,25 @@ function getDataPetugas($pdo)
                                 </div>
                             </td>
                         </tr>
-                        <?php
+                    <?php
                     }
                     ?>
                 </tbody>
             </table>
-            <?php
+        <?php
         } else {
-            ?>
+        ?>
             <div class="container-xxl flex-grow-1 container-p-y">
                 <div class="alert alert-info text-center" role="alert">
                     <i class="bx bx-info-circle me-2"></i>Belum ada data Petugas.
                 </div>
             </div>
 
-            <?php
+        <?php
         }
 
         $html = ob_get_clean();
         echo json_encode(['status' => 'success', 'html' => $html]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -376,7 +374,7 @@ function getDetailPetugas($pdo, $petugasId)
 
         if ($petugas) {
             ob_start();
-            ?>
+        ?>
             <!-- Responsive Layout -->
             <div class="row g-3">
                 <!-- Profile Section - Stack on mobile, side-by-side on larger screens -->
@@ -479,13 +477,12 @@ function getDetailPetugas($pdo, $petugasId)
                     </div>
                 </div>
             </div>
-            <?php
+<?php
             $html = ob_get_clean();
             echo json_encode(['status' => 'success', 'html' => $html]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Data petugas tidak ditemukan']);
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -522,7 +519,6 @@ function getPetugasById($pdo, $petugasId)
                 'message' => 'Data petugas tidak ditemukan'
             ]);
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -633,7 +629,6 @@ function addPetugas($pdo)
         } else {
             throw new Exception('Gagal menambahkan petugas');
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -700,7 +695,6 @@ function deletePetugas($pdo, $petugasId, $petugasName)
         } else {
             throw new Exception('Gagal menghapus petugas dari database');
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -865,7 +859,6 @@ function updatePetugas($pdo)
         } else {
             throw new Exception('Gagal mengupdate data petugas');
         }
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
