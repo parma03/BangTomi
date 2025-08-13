@@ -666,30 +666,39 @@ function addPenugasanWithNotification($pdo)
             $notificationMessage = '';
             if ($sendNotification === 'yes') {
                 try {
-                    // Initialize Telegram Bot
-                    $botToken = "8483301260:AAFNldm582v3C0nteKirm-gnE8p1_xSzhS4"; // Ganti dengan token bot Anda
-                    $database = new mysqli(
-                        $_ENV['DB_HOST'] ?? "localhost",
-                        $_ENV['DB_USER'] ?? "root",
-                        $_ENV['DB_PASS'] ?? "",
-                        $_ENV['DB_NAME'] ?? "db_tomi"
-                    );
+                    // Initialize Telegram Bot menggunakan koneksi dari koneksi.php
+                    $telegramController = new NotificationTelegramController();
 
-                    $telegramController = new NotificationTelegramController($database, $botToken);
+                    // Ambil daftar nama petugas untuk ditampilkan dalam notifikasi
+                    $petugasNames = [];
+                    foreach ($petugasIds as $petugasId) {
+                        $query = "SELECT nama FROM tb_user WHERE id = ?";
+                        $stmt = $pdo->prepare($query);
+                        $stmt->execute([$petugasId]);
+                        $petugasData = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($petugasData) {
+                            $petugasNames[] = $petugasData['nama'];
+                        }
+                    }
 
-                    // Kirim notifikasi otomatis
+                    // Buat custom message untuk group
                     $customMessage = "🔔 *PENUGASAN BARU*\n\n" .
-                        "Anda telah ditugaskan untuk kegiatan:\n\n" .
                         "📋 *Kegiatan:* {$kegiatan['judul_kegiatan']}\n" .
                         "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan'])) . "\n" .
                         "📝 *Deskripsi:* " . substr($kegiatan['deksripsi_kegiatan'], 0, 150) . "...\n\n" .
-                        "💼 Mohon bersiap dan catat jadwal ini dengan baik!\n\n" .
+                        "👥 *Petugas yang Baru Ditugaskan:*\n";
+
+                    foreach ($petugasNames as $index => $nama) {
+                        $customMessage .= ($index + 1) . ". {$nama}\n";
+                    }
+
+                    $customMessage .= "\n💼 Mohon bersiap dan catat jadwal ini dengan baik!\n\n" .
                         "🔗 *Link Kehadiran:* {$kegiatan['kehadiran_kegiatan']}";
 
                     $notifResult = $telegramController->sendManualNotification($kegiatanId, $customMessage);
 
                     if ($notifResult['status'] === 'success') {
-                        $notificationMessage = " Notifikasi berhasil dikirim ke {$notifResult['sent_count']} petugas.";
+                        $notificationMessage = " Notifikasi berhasil dikirim ke group untuk {$notifResult['sent_count']} petugas.";
                     } else {
                         $notificationMessage = " Notifikasi gagal dikirim: {$notifResult['message']}";
                     }
@@ -797,24 +806,25 @@ function sendManualNotification($pdo)
             throw new Exception('Data penugasan tidak ditemukan');
         }
 
-        // Initialize Telegram Bot
-        $botToken = "8483301260:AAFNldm582v3C0nteKirm-gnE8p1_xSzhS4"; // Ganti dengan token bot Anda
-        $database = new mysqli(
-            $_ENV['DB_HOST'] ?? "localhost",
-            $_ENV['DB_USER'] ?? "root",
-            $_ENV['DB_PASS'] ?? "",
-            $_ENV['DB_NAME'] ?? "db_tomi"
-        );
+        // Initialize Telegram Bot menggunakan koneksi dari koneksi.php
+        $telegramController = new NotificationTelegramController();
 
-        $telegramController = new NotificationTelegramController($database, $botToken);
+        // Buat custom message untuk notifikasi manual ke group
+        $customMessage = "📢 *NOTIFIKASI MANUAL KEGIATAN*\n\n" .
+            "📋 *Kegiatan:* {$penugasan['judul_kegiatan']}\n" .
+            "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($penugasan['jadwal_kegiatan'])) . "\n" .
+            "📝 *Deskripsi:* " . substr($penugasan['deksripsi_kegiatan'], 0, 150) . "...\n\n" .
+            "⚠️ *Pengingat khusus untuk:* {$penugasan['nama_petugas']}\n\n" .
+            "💼 Mohon mempersiapkan diri dengan baik dan koordinasi dengan tim!\n\n" .
+            "🔗 *Link Kehadiran:* {$penugasan['kehadiran_kegiatan']}";
 
         // Kirim notifikasi manual
-        $result = $telegramController->sendManualNotification($penugasan['id_kegiatan']);
+        $result = $telegramController->sendManualNotification($penugasan['id_kegiatan'], $customMessage);
 
         if ($result['status'] === 'success') {
             echo json_encode([
                 'status' => 'success',
-                'message' => "Notifikasi berhasil dikirim untuk kegiatan '{$penugasan['judul_kegiatan']}'. {$result['message']}"
+                'message' => "Notifikasi berhasil dikirim ke group untuk kegiatan '{$penugasan['judul_kegiatan']}'. {$result['message']}"
             ]);
         } else {
             throw new Exception($result['message']);

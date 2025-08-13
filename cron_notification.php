@@ -33,26 +33,18 @@ function writeLog($message)
 try {
     writeLog("=== CRON NOTIFICATION STARTED ===");
 
-    // Konfigurasi bot Telegram
-    $botToken = "8483301260:AAFNldm582v3C0nteKirm-gnE8p1_xSzhS4"; // Ganti dengan token bot Anda
+    // Gunakan koneksi dari koneksi.php
+    $database = getMySQLiConnection();
+    $botToken = getTelegramBotToken();
+    $groupChatId = getTelegramGroupChatId();
 
-    // Konversi PDO ke MySQLi untuk NotificationTelegramController
-    $database = new mysqli(
-        $_ENV['DB_HOST'] ?? "localhost",
-        $_ENV['DB_USER'] ?? "root",
-        $_ENV['DB_PASS'] ?? "",
-        $_ENV['DB_NAME'] ?? "db_tomi"
-    );
+    writeLog("Database connection established from koneksi.php");
+    writeLog("Bot Token: " . substr($botToken, 0, 10) . "...");
+    writeLog("Group Chat ID: " . $groupChatId);
 
-    if ($database->connect_error) {
-        throw new Exception("Connection failed: " . $database->connect_error);
-    }
-
-    writeLog("Database connection established");
-
-    // Initialize Telegram Controller
-    $telegramController = new NotificationTelegramController($database, $botToken);
-    writeLog("Telegram controller initialized");
+    // Initialize Telegram Controller (akan otomatis menggunakan koneksi dari koneksi.php)
+    $telegramController = new NotificationTelegramController();
+    writeLog("Telegram controller initialized for group notifications");
 
     // Jalankan notifikasi terjadwal
     $result = $telegramController->sendScheduledNotifications();
@@ -61,23 +53,22 @@ try {
         writeLog("SUCCESS: {$result['message']} - Processed: {$result['processed_count']} kegiatan");
 
         // Output untuk cron log
-        echo "SUCCESS: Notification cron job completed successfully\n";
+        echo "SUCCESS: Group notification cron job completed successfully\n";
         echo "Processed: {$result['processed_count']} kegiatan\n";
         echo "Message: {$result['message']}\n";
+        echo "Group Chat ID: {$groupChatId}\n";
     } else {
         writeLog("ERROR: {$result['message']}");
 
         // Output untuk cron log
-        echo "ERROR: Notification cron job failed\n";
+        echo "ERROR: Group notification cron job failed\n";
         echo "Message: {$result['message']}\n";
 
         // Exit dengan error code
         exit(1);
     }
 
-    // Tutup koneksi database
-    $database->close();
-    writeLog("Database connection closed");
+    writeLog("Group notification process completed");
 } catch (Exception $e) {
     $errorMessage = "FATAL ERROR: " . $e->getMessage();
     writeLog($errorMessage);

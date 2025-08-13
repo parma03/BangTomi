@@ -5,12 +5,23 @@ class NotificationTelegramController
 {
     private $db;
     private $botToken;
+    private $groupChatId;
     private $apiUrl;
 
-    public function __construct($database, $telegramBotToken)
+    public function __construct($database = null, $telegramBotToken = null, $telegramGroupChatId = null)
     {
-        $this->db = $database;
-        $this->botToken = $telegramBotToken;
+        // Jika parameter tidak diberikan, ambil dari koneksi.php
+        if ($database === null || $telegramBotToken === null || $telegramGroupChatId === null) {
+            require_once '../../../db/koneksi.php';
+            $this->db = $database ?: getMySQLiConnection();
+            $this->botToken = $telegramBotToken ?: getTelegramBotToken();
+            $this->groupChatId = $telegramGroupChatId ?: getTelegramGroupChatId();
+        } else {
+            $this->db = $database;
+            $this->botToken = $telegramBotToken;
+            $this->groupChatId = $telegramGroupChatId;
+        }
+
         $this->apiUrl = "https://api.telegram.org/bot{$this->botToken}/";
     }
 
@@ -68,11 +79,11 @@ class NotificationTelegramController
     }
 
     /**
-     * Memproses notifikasi untuk satu kegiatan
+     * Memproses notifikasi untuk satu kegiatan (MODIFIED)
      */
     private function processKegiatanNotification($kegiatan, $today)
     {
-        // Ambil petugas yang ditugaskan dengan telegram_chat_id
+        // Ambil petugas yang ditugaskan untuk kegiatan ini
         $petugasList = $this->getAssignedPetugas($kegiatan['id_kegiatan']);
 
         if (empty($petugasList)) {
@@ -84,30 +95,24 @@ class NotificationTelegramController
         $daysDiff = $kegiatan['days_diff'];
         $notificationType = $this->getNotificationType($daysDiff);
 
-        // Buat pesan notifikasi
-        $message = $this->createNotificationMessage($kegiatan, $notificationType, $daysDiff);
+        // Buat pesan notifikasi untuk group dengan daftar petugas
+        $message = $this->createGroupNotificationMessage($kegiatan, $petugasList, $notificationType, $daysDiff);
 
-        // Kirim ke setiap petugas
-        foreach ($petugasList as $petugas) {
-            $this->sendTelegramMessage($petugas, $message, $kegiatan);
-        }
+        // Kirim ke group chat
+        $this->sendTelegramGroupMessage($message, $kegiatan, $petugasList);
     }
 
     /**
      * Mengambil daftar petugas yang ditugaskan untuk kegiatan tertentu
-     * Modified: Include telegram_chat_id
+     * Modified: Tidak lagi memerlukan telegram_chat_id individual
      */
     private function getAssignedPetugas($idKegiatan)
     {
-        $sql = "SELECT u.id, u.nama, u.email, u.nohp, u.role, u.telegram_chat_id
+        $sql = "SELECT u.id, u.nama, u.email, u.nohp, u.role
                 FROM tb_penugasan p
                 JOIN tb_user u ON p.id_pegawai = u.id
                 WHERE p.id_kegiatan = ? 
-                AND u.role IN ('petugas', 'staf acara')
-                AND (
-                    (u.telegram_chat_id IS NOT NULL AND u.telegram_chat_id != '') OR
-                    (u.nohp IS NOT NULL AND u.nohp != '')
-                )";
+                AND u.role IN ('petugas', 'staf acara')";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param('i', $idKegiatan);
@@ -134,38 +139,48 @@ class NotificationTelegramController
     }
 
     /**
-     * Membuat pesan notifikasi
+     * Membuat pesan notifikasi untuk group (NEW METHOD)
      */
-    private function createNotificationMessage($kegiatan, $notificationType, $daysDiff)
+    private function createGroupNotificationMessage($kegiatan, $petugasList, $notificationType, $daysDiff)
     {
         $judulKegiatan = $kegiatan['judul_kegiatan'];
         $deskripsiKegiatan = substr($kegiatan['deksripsi_kegiatan'] ?? '', 0, 150) . '...';
         $jadwalKegiatan = date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan']));
         $linkKehadiran = $kegiatan['kehadiran_kegiatan'] ?? 'Belum tersedia';
 
+        // Format daftar petugas dengan mention atau nama
+        $petugasText = '';
+        foreach ($petugasList as $index => $petugas) {
+            $petugasText .= ($index + 1) . '. ' . $petugas['nama'];
+            if (!empty($petugas['nohp'])) {
+                $petugasText .= ' (' . $petugas['nohp'] . ')';
+            }
+            $petugasText .= "\n";
+        }
+
         $messages = [
             'reminder_1_days' => "🔔 *PENGINGAT TUGAS - 1 HARI*\n\n" .
-                "Halo! Anda memiliki tugas kegiatan dalam 1 hari:\n\n" .
                 "📋 *Kegiatan:* {$judulKegiatan}\n" .
                 "📅 *Jadwal:* {$jadwalKegiatan}\n" .
                 "📝 *Deskripsi:* {$deskripsiKegiatan}\n\n" .
-                "Mohon untuk mempersiapkan diri dan koordinasi dengan tim.\n\n" .
+                "👥 *Petugas yang Ditugaskan:*\n{$petugasText}\n" .
+                "⚠️ Mohon untuk mempersiapkan diri dan koordinasi dengan tim.\n\n" .
                 "🔗 *Link Kehadiran:* {$linkKehadiran}",
 
             'reminder_3_days' => "⚠️ *PENGINGAT TUGAS - 3 HARI LAGI*\n\n" .
-                "Kegiatan Anda akan berlangsung dalam 3 hari:\n\n" .
                 "📋 *Kegiatan:* {$judulKegiatan}\n" .
                 "📅 *Jadwal:* {$jadwalKegiatan}\n" .
                 "📝 *Deskripsi:* {$deskripsiKegiatan}\n\n" .
-                "⏰ Pastikan Anda sudah siap dan tidak ada bentrok jadwal!\n\n" .
+                "👥 *Petugas yang Ditugaskan:*\n{$petugasText}\n" .
+                "⏰ Pastikan semua petugas sudah siap dan tidak ada bentrok jadwal!\n\n" .
                 "🔗 *Link Kehadiran:* {$linkKehadiran}",
 
             'today' => "🚨 *HARI INI - KEGIATAN BERLANGSUNG*\n\n" .
-                "Kegiatan Anda hari ini:\n\n" .
                 "📋 *Kegiatan:* {$judulKegiatan}\n" .
                 "📅 *Jadwal:* {$jadwalKegiatan}\n" .
                 "📝 *Deskripsi:* {$deskripsiKegiatan}\n\n" .
-                "💼 Jangan lupa hadir tepat waktu dan bawa perlengkapan yang diperlukan!\n\n" .
+                "👥 *Petugas yang Bertugas Hari Ini:*\n{$petugasText}\n" .
+                "💼 Mohon semua petugas hadir tepat waktu dan bawa perlengkapan yang diperlukan!\n\n" .
                 "🔗 *Link Kehadiran:* {$linkKehadiran}"
         ];
 
@@ -173,21 +188,13 @@ class NotificationTelegramController
     }
 
     /**
-     * Mengirim pesan ke Telegram
-     * Modified: Handle chat_id lebih baik dan tambah error handling
+     * Mengirim pesan ke Telegram Group (NEW METHOD)
      */
-    private function sendTelegramMessage($petugas, $message, $kegiatan)
+    private function sendTelegramGroupMessage($message, $kegiatan, $petugasList)
     {
         try {
-            $chatId = $this->getChatId($petugas);
-
-            if (!$chatId) {
-                $this->logNotification($kegiatan['id_kegiatan'], $petugas['id'], $petugas['nohp'] ?? '', ['error' => 'No valid chat_id or phone number']);
-                return false;
-            }
-
             $data = [
-                'chat_id' => $chatId,
+                'chat_id' => $this->groupChatId,
                 'text' => $message,
                 'parse_mode' => 'Markdown',
                 'disable_web_page_preview' => true
@@ -195,63 +202,26 @@ class NotificationTelegramController
 
             $response = $this->makeApiRequest('sendMessage', $data);
 
-            // Log hasil pengiriman
-            $this->logNotification($kegiatan['id_kegiatan'], $petugas['id'], $chatId, $response);
+            // Log hasil pengiriman untuk setiap petugas
+            foreach ($petugasList as $petugas) {
+                $this->logNotification($kegiatan['id_kegiatan'], $petugas['id'], $this->groupChatId, $response);
+            }
 
             return $response;
         } catch (Exception $e) {
-            error_log("Error sending telegram message to {$petugas['nama']}: " . $e->getMessage());
-            $this->logNotification($kegiatan['id_kegiatan'], $petugas['id'], $petugas['nohp'] ?? '', ['error' => $e->getMessage()]);
+            error_log("Error sending telegram group message: " . $e->getMessage());
+
+            // Log error untuk setiap petugas
+            foreach ($petugasList as $petugas) {
+                $this->logNotification($kegiatan['id_kegiatan'], $petugas['id'], $this->groupChatId, ['error' => $e->getMessage()]);
+            }
+
             return false;
         }
     }
 
     /**
-     * Mendapatkan chat_id yang valid
-     * Priority: telegram_chat_id > formatted phone number
-     */
-    private function getChatId($petugas)
-    {
-        // Prioritas pertama: gunakan telegram_chat_id jika ada
-        if (!empty($petugas['telegram_chat_id'])) {
-            return $petugas['telegram_chat_id'];
-        }
-
-        // Prioritas kedua: format nomor HP
-        if (!empty($petugas['nohp'])) {
-            return $this->formatPhoneNumber($petugas['nohp']);
-        }
-
-        return null;
-    }
-
-    /**
-     * Format nomor HP untuk Telegram
-     */
-    private function formatPhoneNumber($nohp)
-    {
-        // Hapus karakter non-numeric
-        $phone = preg_replace('/[^0-9]/', '', $nohp);
-
-        // Jika dimulai dengan 08, ganti dengan 628
-        if (substr($phone, 0, 2) == '08') {
-            $phone = '628' . substr($phone, 2);
-        }
-        // Jika dimulai dengan 8, tambahkan 62
-        elseif (substr($phone, 0, 1) == '8') {
-            $phone = '62' . $phone;
-        }
-        // Jika tidak dimulai dengan 62, tambahkan 62
-        elseif (substr($phone, 0, 2) != '62') {
-            $phone = '62' . $phone;
-        }
-
-        return $phone;
-    }
-
-    /**
      * Melakukan request ke Telegram API
-     * Modified: Better error handling
      */
     private function makeApiRequest($method, $data)
     {
@@ -287,7 +257,7 @@ class NotificationTelegramController
 
             // Specific handling for chat not found
             if (strpos($errorDesc, 'chat not found') !== false) {
-                throw new Exception("Chat not found - User belum memulai chat dengan bot atau chat_id tidak valid: " . $errorDesc);
+                throw new Exception("Chat not found - Group chat tidak ditemukan atau bot belum ditambahkan ke group: " . $errorDesc);
             }
 
             throw new Exception('Telegram API Error: ' . $errorDesc);
@@ -298,7 +268,7 @@ class NotificationTelegramController
 
     /**
      * Mencatat log notifikasi
-     * Modified: Better logging dengan status detail
+     * Modified: recipient sekarang adalah group chat ID
      */
     private function logNotification($idKegiatan, $idPetugas, $recipient, $response)
     {
@@ -334,7 +304,6 @@ class NotificationTelegramController
 
     /**
      * Membuat tabel log jika belum ada
-     * Modified: Tambah kolom error_detail dan ubah nohp menjadi recipient
      */
     private function createLogTableIfNotExists()
     {
@@ -342,7 +311,7 @@ class NotificationTelegramController
                     id_log bigint(11) NOT NULL AUTO_INCREMENT,
                     id_kegiatan bigint(11) NOT NULL,
                     id_petugas int(11) NOT NULL,
-                    recipient varchar(50) NOT NULL COMMENT 'Chat ID atau nomor HP',
+                    recipient varchar(50) NOT NULL COMMENT 'Group Chat ID',
                     status enum('sent','failed') NOT NULL,
                     response_data text,
                     error_detail text,
@@ -362,7 +331,7 @@ class NotificationTelegramController
     }
 
     /**
-     * Mengirim notifikasi manual untuk kegiatan tertentu
+     * Mengirim notifikasi manual untuk kegiatan tertentu (MODIFIED)
      */
     public function sendManualNotification($idKegiatan, $customMessage = null)
     {
@@ -380,43 +349,37 @@ class NotificationTelegramController
             $petugasList = $this->getAssignedPetugas($idKegiatan);
 
             if (empty($petugasList)) {
-                throw new Exception("Tidak ada petugas yang ditugaskan atau tidak memiliki kontak Telegram yang valid");
+                throw new Exception("Tidak ada petugas yang ditugaskan untuk kegiatan ini");
             }
 
-            $message = $customMessage ?: $this->createManualNotificationMessage($kegiatan);
+            // Gunakan custom message atau buat message default untuk group
+            $message = $customMessage ?: $this->createManualGroupNotificationMessage($kegiatan, $petugasList);
 
-            $sentCount = 0;
-            $failedCount = 0;
-            $errors = [];
+            try {
+                $result = $this->sendTelegramGroupMessage($message, $kegiatan, $petugasList);
 
-            foreach ($petugasList as $petugas) {
-                try {
-                    $result = $this->sendTelegramMessage($petugas, $message, $kegiatan);
-                    if ($result && isset($result['ok']) && $result['ok']) {
-                        $sentCount++;
-                    } else {
-                        $failedCount++;
-                        $errors[] = "Gagal kirim ke {$petugas['nama']}: " . ($result['description'] ?? 'Unknown error');
-                    }
-                } catch (Exception $e) {
-                    $failedCount++;
-                    $errors[] = "Error kirim ke {$petugas['nama']}: " . $e->getMessage();
+                if ($result && isset($result['ok']) && $result['ok']) {
+                    return [
+                        'status' => 'success',
+                        'message' => "Notifikasi berhasil dikirim ke group untuk " . count($petugasList) . " petugas",
+                        'sent_count' => count($petugasList),
+                        'failed_count' => 0,
+                        'total_petugas' => count($petugasList),
+                        'errors' => []
+                    ];
+                } else {
+                    throw new Exception($result['description'] ?? 'Unknown error');
                 }
+            } catch (Exception $e) {
+                return [
+                    'status' => 'error',
+                    'message' => "Gagal mengirim notifikasi ke group: " . $e->getMessage(),
+                    'sent_count' => 0,
+                    'failed_count' => count($petugasList),
+                    'total_petugas' => count($petugasList),
+                    'errors' => [$e->getMessage()]
+                ];
             }
-
-            $message = "Notifikasi dikirim ke {$sentCount} petugas";
-            if ($failedCount > 0) {
-                $message .= ", {$failedCount} gagal";
-            }
-
-            return [
-                'status' => $sentCount > 0 ? 'success' : 'error',
-                'message' => $message,
-                'sent_count' => $sentCount,
-                'failed_count' => $failedCount,
-                'total_petugas' => count($petugasList),
-                'errors' => $errors
-            ];
         } catch (Exception $e) {
             return [
                 'status' => 'error',
@@ -426,20 +389,31 @@ class NotificationTelegramController
     }
 
     /**
-     * Membuat pesan notifikasi manual
+     * Membuat pesan notifikasi manual untuk group (NEW METHOD)
      */
-    private function createManualNotificationMessage($kegiatan)
+    private function createManualGroupNotificationMessage($kegiatan, $petugasList)
     {
         $judulKegiatan = $kegiatan['judul_kegiatan'];
         $deskripsiKegiatan = substr($kegiatan['deksripsi_kegiatan'] ?? '', 0, 150) . '...';
         $jadwalKegiatan = date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan']));
         $linkKehadiran = $kegiatan['kehadiran_kegiatan'] ?? 'Belum tersedia';
 
+        // Format daftar petugas
+        $petugasText = '';
+        foreach ($petugasList as $index => $petugas) {
+            $petugasText .= ($index + 1) . '. ' . $petugas['nama'];
+            if (!empty($petugas['nohp'])) {
+                $petugasText .= ' (' . $petugas['nohp'] . ')';
+            }
+            $petugasText .= "\n";
+        }
+
         return "📢 *NOTIFIKASI KEGIATAN*\n\n" .
             "📋 *Kegiatan:* {$judulKegiatan}\n" .
             "📅 *Jadwal:* {$jadwalKegiatan}\n" .
             "📝 *Deskripsi:* {$deskripsiKegiatan}\n\n" .
-            "Mohon untuk mempersiapkan diri dengan baik.\n\n" .
+            "👥 *Petugas yang Ditugaskan:*\n{$petugasText}\n" .
+            "💼 Mohon semua petugas untuk mempersiapkan diri dengan baik.\n\n" .
             "🔗 *Link Kehadiran:* {$linkKehadiran}";
     }
 
@@ -480,67 +454,4 @@ class NotificationTelegramController
             return [];
         }
     }
-
-    /**
-     * Method baru untuk mendaftarkan chat_id user
-     * Dipanggil ketika user mengirim /start ke bot
-     */
-    public function registerUserChatId($chatId, $phoneNumber = null, $username = null)
-    {
-        try {
-            // Cari user berdasarkan nomor HP atau username
-            $sql = "UPDATE tb_user SET telegram_chat_id = ? WHERE ";
-            $params = [$chatId];
-            $types = "s";
-
-            if ($phoneNumber) {
-                // Format nomor HP untuk pencarian
-                $formattedPhone = $this->formatPhoneNumber($phoneNumber);
-                $sql .= "(nohp = ? OR nohp = ? OR nohp = ?)";
-                $params = array_merge($params, [$phoneNumber, $formattedPhone, substr($formattedPhone, 2)]);
-                $types .= "sss";
-            } elseif ($username) {
-                $sql .= "email LIKE ? OR nama LIKE ?";
-                $params = array_merge($params, ["%{$username}%", "%{$username}%"]);
-                $types .= "ss";
-            } else {
-                return false;
-            }
-
-            $stmt = $this->db->prepare($sql);
-            $stmt->bind_param($types, ...$params);
-            $success = $stmt->execute();
-
-            return $success && $stmt->affected_rows > 0;
-        } catch (Exception $e) {
-            error_log("Error registering chat ID: " . $e->getMessage());
-            return false;
-        }
-    }
 }
-
-// Database connection
-$database = new mysqli(
-    "localhost",    // Host database
-    "root",         // Username database  
-    "",             // Password database
-    "db_tomi"       // Nama database
-);
-
-// Contoh penggunaan:
-/*
-// Inisialisasi
-$botToken = "8483301260:AAFNldm582v3C0nteKirm-gnE8p1_xSzhS4";
-$notificationController = new NotificationTelegramController($database, $botToken);
-
-// Untuk cron job harian
-$result = $notificationController->sendScheduledNotifications();
-echo json_encode($result);
-
-// Untuk notifikasi manual
-$result = $notificationController->sendManualNotification(1);
-echo json_encode($result);
-
-// setup cronjob
-// 0 8 * * * php /path/to/your/cron_notification.php
-*/
