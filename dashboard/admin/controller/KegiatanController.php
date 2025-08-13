@@ -409,12 +409,12 @@ function getDetailKegiatan($pdo, $kegiatanId)
                                 if (in_array($fileExtension, $videoExtensions)) {
                                     // Tampilkan video player
                                     echo '<video class="img-fluid rounded shadow" style="max-height: 200px; cursor: pointer;" controls onclick="openMediaPreview(\'' . htmlspecialchars($thumbnails) . '\', \'video\')">';
-                                    echo '<source src="../../../assets/img/thumb/' . htmlspecialchars($thumbnails) . '" type="video/' . $fileExtension . '">';
+                                    echo '<source src="../../assets/img/thumb/' . htmlspecialchars($thumbnails) . '" type="video/' . $fileExtension . '">';
                                     echo 'Browser Anda tidak mendukung video.';
                                     echo '</video>';
                                 } else if (in_array($fileExtension, $imageExtensions)) {
                                     // Tampilkan gambar
-                                    echo '<img src="../../../assets/img/thumb/' . htmlspecialchars($thumbnails) . '" class="img-fluid rounded shadow" style="max-height: 200px; cursor: pointer;" onclick="openMediaPreview(\'' . htmlspecialchars($thumbnails) . '\', \'image\')" alt="Thumbnail Kegiatan">';
+                                    echo '<img src="../../assets/img/thumb/' . htmlspecialchars($thumbnails) . '" class="img-fluid rounded shadow" style="max-height: 200px; cursor: pointer;" onclick="openMediaPreview(\'' . htmlspecialchars($thumbnails) . '\', \'image\')" alt="Thumbnail Kegiatan">';
                                 } else {
                                     // File tidak dikenali
                                     echo '<div class="alert alert-warning">';
@@ -564,13 +564,13 @@ function getDetailKegiatan($pdo, $kegiatanId)
                     if (mediaType === 'video') {
                         modalContent.innerHTML = `
                         <video class="img-fluid" controls style="max-width: 100%; max-height: 70vh;">
-                            <source src="../../../assets/img/thumb/${mediaUrl}" type="video/mp4">
+                            <source src="../../assets/img/thumb/${mediaUrl}" type="video/mp4">
                             Browser Anda tidak mendukung video.
                         </video>
                     `;
                     } else if (mediaType === 'image') {
                         modalContent.innerHTML = `
-                        <img src="../../../assets/img/thumb/${mediaUrl}" class="img-fluid" style="max-width: 100%; max-height: 70vh;" alt="Preview">
+                        <img src="../../assets/img/thumb/${mediaUrl}" class="img-fluid" style="max-width: 100%; max-height: 70vh;" alt="Preview">
                     `;
                     }
 
