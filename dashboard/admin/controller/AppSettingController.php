@@ -29,7 +29,7 @@ function checkAdminAccess()
     // Cek apakah role adalah admin
     if ($_SESSION['role'] !== 'admin') {
         // Jika bukan admin, redirect ke halaman unauthorized atau halaman utama
-        header('Location: ../../kegiatan/index.php');
+        header('Location: ../../../index.php');
         exit();
     }
 
@@ -71,7 +71,14 @@ function getAppSetting($pdo)
                 'video_header' => '',
                 'foto_tentang_kami' => '',
                 'judul_tentang_kami' => '',
-                'deskripsi_tentang_kami' => ''
+                'deskripsi_tentang_kami' => '',
+                'background_testimonial' => '',
+                'alamat' => '',
+                'phone' => '',
+                'email' => '',
+                'twitter_link' => '',
+                'facebook_link' => '',
+                'instagram_link' => ''
             ];
         }
 
@@ -88,7 +95,14 @@ function getAppSetting($pdo)
             'video_header' => '',
             'foto_tentang_kami' => '',
             'judul_tentang_kami' => '',
-            'deskripsi_tentang_kami' => ''
+            'deskripsi_tentang_kami' => '',
+            'background_testimonial' => '',
+            'alamat' => '',
+            'phone' => '',
+            'email' => '',
+            'twitter_link' => '',
+            'facebook_link' => '',
+            'instagram_link' => ''
         ];
     }
 }
@@ -106,6 +120,12 @@ function updateAppSetting($pdo)
         $headerDescription = trim($_POST['header_description'] ?? '');
         $judulTentangKami = trim($_POST['judul_tentang_kami'] ?? '');
         $deskripsiTentangKami = trim($_POST['deskripsi_tentang_kami'] ?? '');
+        $alamat = trim($_POST['alamat'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $twitterLink = trim($_POST['twitter_link'] ?? '');
+        $facebookLink = trim($_POST['facebook_link'] ?? '');
+        $instagramLink = trim($_POST['instagram_link'] ?? '');
 
         // Validasi input wajib
         if (empty($appName)) {
@@ -149,6 +169,24 @@ function updateAppSetting($pdo)
                 file_exists('../../../assets/img/appsetting/' . $currentData['background_header'])
             ) {
                 unlink('../../../assets/img/appsetting/' . $currentData['background_header']);
+            }
+        }
+
+        // Handle upload background testimonial
+        $backgroundTestimonialFilename = $currentData['background_testimonial'] ?? '';
+        if (isset($_FILES['background_testimonial']) && $_FILES['background_testimonial']['error'] === UPLOAD_ERR_OK) {
+            $backgroundTestimonialFilename = handleFileUpload($_FILES['background_testimonial'], 'background testimonial', '../../../assets/img/appsetting/', [
+                'allowed_types' => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'],
+                'max_size' => 5 * 1024 * 1024, // 5MB
+                'prefix' => 'testimonial_bg_'
+            ]);
+
+            // Hapus background testimonial lama jika ada
+            if (
+                !empty($currentData['background_testimonial']) &&
+                file_exists('../../../assets/img/appsetting/' . $currentData['background_testimonial'])
+            ) {
+                unlink('../../../assets/img/appsetting/' . $currentData['background_testimonial']);
             }
         }
 
@@ -200,7 +238,14 @@ function updateAppSetting($pdo)
                         video_header = ?,
                         foto_tentang_kami = ?,
                         judul_tentang_kami = ?,
-                        deskripsi_tentang_kami = ?
+                        deskripsi_tentang_kami = ?,
+                        background_testimonial = ?,
+                        alamat = ?,
+                        phone = ?,
+                        email = ?,
+                        twitter_link = ?,
+                        facebook_link = ?,
+                        instagram_link = ?
                     WHERE id_appsetting = ?";
             $stmt = $pdo->prepare($sql);
             $result = $stmt->execute([
@@ -213,13 +258,20 @@ function updateAppSetting($pdo)
                 $fotoTentangKami,
                 $judulTentangKami,
                 $deskripsiTentangKami,
+                $backgroundTestimonialFilename,
+                $alamat,
+                $phone,
+                $email,
+                $twitterLink,
+                $facebookLink,
+                $instagramLink,
                 $appSettingId
             ]);
         } else {
             // Insert new record
             $sql = "INSERT INTO tb_appsetting 
-                        (name, logo, name_header, description_header, background_header, video_header, foto_tentang_kami, judul_tentang_kami, deskripsi_tentang_kami) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        (name, logo, name_header, description_header, background_header, video_header, foto_tentang_kami, judul_tentang_kami, deskripsi_tentang_kami, background_testimonial, alamat, phone, email, twitter_link, facebook_link, instagram_link) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
             $result = $stmt->execute([
                 $appName,
@@ -230,7 +282,14 @@ function updateAppSetting($pdo)
                 $videoFilename,
                 $fotoTentangKami,
                 $judulTentangKami,
-                $deskripsiTentangKami
+                $deskripsiTentangKami,
+                $backgroundTestimonialFilename,
+                $alamat,
+                $phone,
+                $email,
+                $twitterLink,
+                $facebookLink,
+                $instagramLink
             ]);
         }
 

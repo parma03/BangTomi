@@ -583,6 +583,8 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
           <li><a href="#profile">Profile</a></li>
           <li><a href="#agenda_kegiatan">Agenda Kegiatan</a></li>
           <li><a href="#portfolio">Histori Kegiatan</a></li>
+          <li><a href="#testimonials">Testimonial</a></li>
+          <li><a href="#komentar">Komentar</a></li>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
@@ -893,7 +895,11 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
 
     <!-- Testimonials Section -->
     <section id="testimonials" class="testimonials section dark-background">
-      <img src="assets/img/testimonials-bg.jpg" class="testimonials-bg" alt="">
+      <?php if (!empty($appSetting['background_testimonial'])): ?>
+        <img src="assets/img/appsetting/<?php echo htmlspecialchars($appSetting['background_testimonial']); ?>" class="testimonials-bg" alt="">
+      <?php else: ?>
+        <img src="assets/img/testimonials-bg.jpg" class="testimonials-bg" alt="">
+      <?php endif; ?>
 
       <div class="container" data-aos="fade-up" data-aos-delay="100">
         <div class="swiper init-swiper">
@@ -1039,24 +1045,51 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
   </main>
 
   <footer id="footer" class="footer dark-background">
-
     <div class="container footer-top">
       <div class="row gy-4">
         <div class="col-lg-4 col-md-6 footer-about">
           <a href="index.html" class="logo d-flex align-items-center">
-            <span class="sitename">Dewi</span>
+            <span class="sitename"><?php echo htmlspecialchars($appSetting['name']); ?></span>
           </a>
           <div class="footer-contact pt-3">
-            <p>A108 Adam Street</p>
-            <p>New York, NY 535022</p>
-            <p class="mt-3"><strong>Phone:</strong> <span>+1 5589 55488 55</span></p>
-            <p><strong>Email:</strong> <span>info@example.com</span></p>
+            <?php if (!empty($appSetting['alamat'])): ?>
+              <p><?php echo nl2br(htmlspecialchars($appSetting['alamat'])); ?></p>
+            <?php else: ?>
+              <p>A108 Adam Street <br>
+                New York, NY 535022
+              </p>
+            <?php endif; ?>
+
+            <?php if (!empty($appSetting['phone'])): ?>
+              <p class="mt-3"><strong>Phone:</strong> <span><?php echo htmlspecialchars($appSetting['phone']); ?></span></p>
+            <?php else: ?>
+              <p class="mt-3"><strong>Phone:</strong> <span>+1 5589 55488 55</span></p>
+            <?php endif; ?>
+
+            <?php if (!empty($appSetting['email'])): ?>
+              <p><strong>Email:</strong> <span><?php echo htmlspecialchars($appSetting['email']); ?></span></p>
+            <?php else: ?>
+              <p><strong>Email:</strong> <span>info@example.com</span></p>
+            <?php endif; ?>
           </div>
           <div class="social-links d-flex mt-4">
-            <a href=""><i class="bi bi-twitter-x"></i></a>
-            <a href=""><i class="bi bi-facebook"></i></a>
-            <a href=""><i class="bi bi-instagram"></i></a>
-            <a href=""><i class="bi bi-linkedin"></i></a>
+            <?php if (!empty($appSetting['twitter_link'])): ?>
+              <a href="<?php echo htmlspecialchars($appSetting['twitter_link']); ?>" target="_blank" rel="noopener"><i class="bi bi-twitter-x"></i></a>
+            <?php else: ?>
+              <a href=""><i class="bi bi-twitter-x"></i></a>
+            <?php endif; ?>
+
+            <?php if (!empty($appSetting['facebook_link'])): ?>
+              <a href="<?php echo htmlspecialchars($appSetting['facebook_link']); ?>" target="_blank" rel="noopener"><i class="bi bi-facebook"></i></a>
+            <?php else: ?>
+              <a href=""><i class="bi bi-facebook"></i></a>
+            <?php endif; ?>
+
+            <?php if (!empty($appSetting['instagram_link'])): ?>
+              <a href="<?php echo htmlspecialchars($appSetting['instagram_link']); ?>" target="_blank" rel="noopener"><i class="bi bi-instagram"></i></a>
+            <?php else: ?>
+              <a href=""><i class="bi bi-instagram"></i></a>
+            <?php endif; ?>
           </div>
         </div>
 
@@ -1067,11 +1100,12 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
             <li><i class="bi bi-chevron-right"></i> <a href="#profile">Profile</a></li>
             <li><i class="bi bi-chevron-right"></i> <a href="#agenda_kegiatan">Agenda Kegiatan</a></li>
             <li><i class="bi bi-chevron-right"></i> <a href="#portfolio">Histori Kegiatan</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="#testimonials">Testimonial</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="#komentar">Komentar</a></li>
           </ul>
         </div>
       </div>
     </div>
-
   </footer>
 
   <!-- Scroll Top -->

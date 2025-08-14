@@ -5,6 +5,8 @@ include 'controller/KegiatanController.php';
 
 // Ambil data app setting
 $appSetting = getAppSetting($pdo);
+checkAdminAccess();
+
 ?>
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="assets/"

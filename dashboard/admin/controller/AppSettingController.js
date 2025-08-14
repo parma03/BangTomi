@@ -479,6 +479,101 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  const backgroundTestimonialInput = document.getElementById(
+    "background_testimonial"
+  );
+  const backgroundTestimonialPreview = document.getElementById(
+    "backgroundTestimonialPreview"
+  );
+  const backgroundTestimonialUploadArea = document.getElementById(
+    "backgroundTestimonialUploadArea"
+  );
+
+  if (
+    backgroundTestimonialInput &&
+    backgroundTestimonialPreview &&
+    backgroundTestimonialUploadArea
+  ) {
+    // Click handler
+    backgroundTestimonialUploadArea.addEventListener("click", function (e) {
+      e.preventDefault();
+      backgroundTestimonialInput.click();
+    });
+
+    // Drag and drop handlers
+    backgroundTestimonialUploadArea.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      this.classList.add("dragover");
+    });
+
+    backgroundTestimonialUploadArea.addEventListener("dragleave", function (e) {
+      e.preventDefault();
+      this.classList.remove("dragover");
+    });
+
+    backgroundTestimonialUploadArea.addEventListener("drop", function (e) {
+      e.preventDefault();
+      this.classList.remove("dragover");
+
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith("image/")) {
+          backgroundTestimonialInput.files = files;
+          handleFilePreview(
+            file,
+            backgroundTestimonialPreview,
+            "Background Testimonial"
+          );
+        } else {
+          showAlert(
+            "Hanya file gambar yang diperbolehkan untuk background testimonial",
+            "warning"
+          );
+        }
+      }
+    });
+
+    backgroundTestimonialInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        // Validasi ukuran file (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          showAlert(
+            "Ukuran file background testimonial maksimal 5MB",
+            "warning"
+          );
+          this.value = "";
+          backgroundTestimonialPreview.style.display = "none";
+          return;
+        }
+
+        // Validasi tipe file
+        const allowedTypes = [
+          "image/jpeg",
+          "image/jpg",
+          "image/png",
+          "image/gif",
+        ];
+        if (!allowedTypes.includes(file.type)) {
+          showAlert(
+            "Hanya file JPG, PNG, dan GIF yang diperbolehkan untuk background testimonial",
+            "warning"
+          );
+          this.value = "";
+          backgroundTestimonialPreview.style.display = "none";
+          return;
+        }
+
+        handleFilePreview(
+          file,
+          backgroundTestimonialPreview,
+          "Background Testimonial"
+        );
+      }
+    });
+  }
+
   // Form submission handler
   const appSettingForm = document.getElementById("appSettingForm");
   if (appSettingForm) {
@@ -639,6 +734,10 @@ function clearPreview(type) {
     case "backgroundheader":
       inputId = "background_header";
       previewId = "backgroundPreview";
+      break;
+    case "backgroundtestimonial":
+      inputId = "background_testimonial";
+      previewId = "backgroundTestimonialPreview";
       break;
     case "videoheader":
       inputId = "video_header";

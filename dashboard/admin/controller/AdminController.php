@@ -30,7 +30,7 @@ function checkAdminAccess()
     // Cek apakah role adalah admin
     if ($_SESSION['role'] !== 'admin') {
         // Jika bukan admin, redirect ke halaman unauthorized atau halaman utama
-        header('Location: ../../petugas/index.php');
+        header('Location: ../../../index.php');
         exit();
     }
 

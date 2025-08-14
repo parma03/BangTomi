@@ -31,7 +31,7 @@ function checkAdminAccess()
     // Cek apakah role adalah kegiatan
     if ($_SESSION['role'] !== 'admin') {
         // Jika bukan kegiatan, redirect ke halaman unauthorized atau halaman utama
-        header('Location: ../../kegiatan/index.php');
+        header('Location: ../../../index.php');
         exit();
     }
 

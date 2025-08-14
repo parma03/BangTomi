@@ -30,7 +30,7 @@ function checkAdminAccess()
     // Cek apakah role adalah kegiatan
     if ($_SESSION['role'] !== 'admin') {
         // Jika bukan kegiatan, redirect ke halaman unauthorized atau halaman utama
-        header('Location: ../../kegiatan/index.php');
+        header('Location: ../../../index.php');
         exit();
     }
 
@@ -174,7 +174,6 @@ function updateProfile($pdo, $user_id, $data, $file = null)
         } else {
             throw new Exception('Gagal update profile');
         }
-
     } catch (Exception $e) {
         return [
             'success' => false,
@@ -292,7 +291,6 @@ function getDashboardStats($pdo)
         $stats['kegiatan_minggu_ini'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
         echo json_encode(['status' => 'success', 'data' => $stats]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -387,7 +385,6 @@ function getCalendarData($pdo)
         }
 
         echo json_encode(['status' => 'success', 'events' => $calendarEvents]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -449,7 +446,6 @@ function getEventDetails($pdo)
         $event['petugas'] = $petugas;
 
         echo json_encode(['status' => 'success', 'event' => $event]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -484,7 +480,6 @@ function getUpcomingEvents($pdo)
         $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo json_encode(['status' => 'success', 'events' => $events]);
-
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
@@ -524,4 +519,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     exit();
 }
-?>

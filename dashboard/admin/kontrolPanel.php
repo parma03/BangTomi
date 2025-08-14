@@ -6,6 +6,8 @@ include 'controller/AppSettingController.php';
 
 // Ambil data app setting
 $appSetting = getAppSetting($pdo);
+checkAdminAccess();
+
 ?>
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="assets/"
@@ -340,6 +342,61 @@ $appSetting = getAppSetting($pdo);
                                                     <?php endif; ?>
                                                 </div>
                                             <?php endif; ?>
+
+                                            <?php if (!empty($appSetting['background_testimonial'])): ?>
+                                                <div class="file-info">
+                                                    <h6 class="text-white mb-2">Background Testimonial:</h6>
+                                                    <div class="preview-container">
+                                                        <img src="../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['background_testimonial']); ?>"
+                                                            alt="Background Testimonial"
+                                                            style="cursor: pointer;"
+                                                            onclick="showMediaPreview('../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['background_testimonial']); ?>', 'image', 'Background Testimonial')">
+                                                    </div>
+                                                    <small class="text-white-50 mt-2 d-block">Klik untuk memperbesar</small>
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($appSetting['alamat']) || !empty($appSetting['phone']) || !empty($appSetting['email']) || !empty($appSetting['twitter_link']) || !empty($appSetting['facebook_link']) || !empty($appSetting['instagram_link'])): ?>
+                                                <div class="file-info">
+                                                    <h6 class="text-white mb-2">Informasi Footer:</h6>
+
+                                                    <?php if (!empty($appSetting['alamat'])): ?>
+                                                        <p class="mb-1"><strong>Alamat:</strong> <?php echo nl2br(htmlspecialchars($appSetting['alamat'])); ?></p>
+                                                    <?php endif; ?>
+
+                                                    <?php if (!empty($appSetting['phone'])): ?>
+                                                        <p class="mb-1"><strong>Telepon:</strong> <?php echo htmlspecialchars($appSetting['phone']); ?></p>
+                                                    <?php endif; ?>
+
+                                                    <?php if (!empty($appSetting['email'])): ?>
+                                                        <p class="mb-1"><strong>Email:</strong> <?php echo htmlspecialchars($appSetting['email']); ?></p>
+                                                    <?php endif; ?>
+
+                                                    <?php if (!empty($appSetting['twitter_link']) || !empty($appSetting['facebook_link']) || !empty($appSetting['instagram_link'])): ?>
+                                                        <div class="mt-2">
+                                                            <strong>Social Media:</strong><br>
+                                                            <?php if (!empty($appSetting['twitter_link'])): ?>
+                                                                <a href="<?php echo htmlspecialchars($appSetting['twitter_link']); ?>" target="_blank" class="text-white me-2">
+                                                                    <i class="bx bxl-twitter"></i> Twitter
+                                                                </a>
+                                                            <?php endif; ?>
+
+                                                            <?php if (!empty($appSetting['facebook_link'])): ?>
+                                                                <a href="<?php echo htmlspecialchars($appSetting['facebook_link']); ?>" target="_blank" class="text-white me-2">
+                                                                    <i class="bx bxl-facebook"></i> Facebook
+                                                                </a>
+                                                            <?php endif; ?>
+
+                                                            <?php if (!empty($appSetting['instagram_link'])): ?>
+                                                                <a href="<?php echo htmlspecialchars($appSetting['instagram_link']); ?>" target="_blank" class="text-white">
+                                                                    <i class="bx bxl-instagram"></i> Instagram
+                                                                </a>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+
                                         </div>
                                     </div>
                                 </div>
@@ -470,6 +527,92 @@ $appSetting = getAppSetting($pdo);
                                                 </div>
                                                 <input type="file" id="foto_tentang_kami" name="foto_tentang_kami" class="d-none" accept="image/*">
                                                 <div id="fotoTentangKamiPreview" class="mt-3" style="display: none;"></div>
+                                            </div>
+
+                                            <!-- Background Testimonial Upload -->
+                                            <div class="mb-4">
+                                                <label for="background_testimonial" class="form-label fw-semibold">
+                                                    <i class="bx bx-image text-purple me-1"></i>Background Testimonial
+                                                </label>
+                                                <div class="file-upload-area" id="backgroundTestimonialUploadArea">
+                                                    <div class="upload-placeholder">
+                                                        <i class="bx bx-image-add upload-icon" style="font-size: 3rem; color: #6f42c1;"></i>
+                                                        <h6 class="mt-3 mb-2">Upload Background Testimonial</h6>
+                                                        <p class="text-muted mb-0">Klik atau drag & drop gambar background untuk section testimonial</p>
+                                                        <small class="text-muted">Maksimal 5MB (JPG, PNG, GIF)</small>
+                                                    </div>
+                                                </div>
+                                                <input type="file" id="background_testimonial" name="background_testimonial" class="d-none" accept="image/*">
+                                                <div id="backgroundTestimonialPreview" class="mt-3" style="display: none;"></div>
+                                            </div>
+
+                                            <!-- Footer Information Section -->
+                                            <div class="card mb-4">
+                                                <div class="card-header">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="bx bx-info-circle text-info me-2"></i>Informasi Footer
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <!-- Alamat -->
+                                                    <div class="mb-3">
+                                                        <label for="alamat" class="form-label fw-semibold">
+                                                            <i class="bx bx-map text-danger me-1"></i>Alamat
+                                                        </label>
+                                                        <textarea class="form-control" id="alamat" name="alamat" rows="3"
+                                                            placeholder="Masukkan alamat lengkap"><?php echo htmlspecialchars($appSetting['alamat'] ?? ''); ?></textarea>
+                                                    </div>
+
+                                                    <!-- Phone -->
+                                                    <div class="mb-3">
+                                                        <label for="phone" class="form-label fw-semibold">
+                                                            <i class="bx bx-phone text-success me-1"></i>Nomor Telepon
+                                                        </label>
+                                                        <input type="text" class="form-control" id="phone" name="phone"
+                                                            value="<?php echo htmlspecialchars($appSetting['phone'] ?? ''); ?>"
+                                                            placeholder="Contoh: +62 21 1234567">
+                                                    </div>
+
+                                                    <!-- Email -->
+                                                    <div class="mb-3">
+                                                        <label for="email" class="form-label fw-semibold">
+                                                            <i class="bx bx-envelope text-primary me-1"></i>Email
+                                                        </label>
+                                                        <input type="email" class="form-control" id="email" name="email"
+                                                            value="<?php echo htmlspecialchars($appSetting['email'] ?? ''); ?>"
+                                                            placeholder="Contoh: info@example.com">
+                                                    </div>
+
+                                                    <!-- Social Media Links -->
+                                                    <div class="row">
+                                                        <div class="col-md-4 mb-3">
+                                                            <label for="facebook_link" class="form-label fw-semibold">
+                                                                <i class="bx bxl-facebook text-primary me-1"></i>Facebook Link
+                                                            </label>
+                                                            <input type="url" class="form-control" id="facebook_link" name="facebook_link"
+                                                                value="<?php echo htmlspecialchars($appSetting['facebook_link'] ?? ''); ?>"
+                                                                placeholder="https://facebook.com/username">
+                                                        </div>
+
+                                                        <div class="col-md-4 mb-3">
+                                                            <label for="instagram_link" class="form-label fw-semibold">
+                                                                <i class="bx bxl-instagram text-danger me-1"></i>Instagram Link
+                                                            </label>
+                                                            <input type="url" class="form-control" id="instagram_link" name="instagram_link"
+                                                                value="<?php echo htmlspecialchars($appSetting['instagram_link'] ?? ''); ?>"
+                                                                placeholder="https://instagram.com/username">
+                                                        </div>
+
+                                                        <div class="col-md-4 mb-3">
+                                                            <label for="twitter_link" class="form-label fw-semibold">
+                                                                <i class="bx bxl-twitter text-info me-1"></i>Twitter Link
+                                                            </label>
+                                                            <input type="url" class="form-control" id="twitter_link" name="twitter_link"
+                                                                value="<?php echo htmlspecialchars($appSetting['twitter_link'] ?? ''); ?>"
+                                                                placeholder="https://twitter.com/username">
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <!-- Submit Button -->
