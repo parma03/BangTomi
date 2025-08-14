@@ -129,11 +129,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <span class="menu-header-text">Fitur Lainnya</span>
         </li>
 
-        <!-- Survei Kepuasan -->
-        <li class="menu-item <?php echo ($current_page == 'surveiKepuasan.php') ? 'active' : ''; ?>">
-            <a href="surveiKepuasan.php" class="menu-link">
+        <!-- Komentar -->
+        <li class="menu-item <?php echo ($current_page == 'komentar.php') ? 'active' : ''; ?>">
+            <a href="komentar.php" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-poll"></i>
-                <div data-i18n="surveiKepuasan.php">Survei Kepuasan</div>
+                <div data-i18n="omentar.php">Kelola Komentar</div>
             </a>
         </li>
 
@@ -210,7 +210,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 <script>
     // JavaScript untuk auto resize font berdasarkan panjang teks
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const appBrandText = document.getElementById('appBrandText');
 
         if (appBrandText) {
@@ -221,7 +221,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             function adjustFontSize() {
                 const maxWidth = window.innerWidth <= 767 ? 120 :
                     window.innerWidth <= 991 ? 140 :
-                        window.innerWidth <= 1199 ? 160 : 200;
+                    window.innerWidth <= 1199 ? 160 : 200;
 
                 // Reset classes
                 appBrandText.classList.remove('text-xs', 'text-sm', 'text-base');

@@ -891,6 +891,7 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
 
     </section><!-- /Portfolio Section -->
 
+    <!-- Testimonials Section -->
     <section id="testimonials" class="testimonials section dark-background">
       <img src="assets/img/testimonials-bg.jpg" class="testimonials-bg" alt="">
 
