@@ -68,7 +68,10 @@ function getAppSetting($pdo)
                 'name_header' => '',
                 'description_header' => '',
                 'background_header' => '',
-                'video_header' => ''
+                'video_header' => '',
+                'foto_tentang_kami' => '',
+                'judul_tentang_kami' => '',
+                'deskripsi_tentang_kami' => ''
             ];
         }
 
@@ -82,7 +85,10 @@ function getAppSetting($pdo)
             'name_header' => '',
             'description_header' => '',
             'background_header' => '',
-            'video_header' => ''
+            'video_header' => '',
+            'foto_tentang_kami' => '',
+            'judul_tentang_kami' => '',
+            'deskripsi_tentang_kami' => ''
         ];
     }
 }
@@ -98,6 +104,8 @@ function updateAppSetting($pdo)
         $appName = trim($_POST['app_name'] ?? '');
         $headerName = trim($_POST['header_name'] ?? '');
         $headerDescription = trim($_POST['header_description'] ?? '');
+        $judulTentangKami = trim($_POST['judul_tentang_kami'] ?? '');
+        $deskripsiTentangKami = trim($_POST['deskripsi_tentang_kami'] ?? '');
 
         // Validasi input wajib
         if (empty($appName)) {
@@ -162,6 +170,24 @@ function updateAppSetting($pdo)
             }
         }
 
+        // Handle upload foto tentang kami
+        $fotoTentangKami = $currentData['foto_tentang_kami'] ?? '';
+        if (isset($_FILES['foto_tentang_kami']) && $_FILES['foto_tentang_kami']['error'] === UPLOAD_ERR_OK) {
+            $fotoTentangKami = handleFileUpload($_FILES['foto_tentang_kami'], 'foto tentang kami', '../../../assets/img/appsetting/', [
+                'allowed_types' => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'],
+                'max_size' => 5 * 1024 * 1024, // 5MB
+                'prefix' => 'about_'
+            ]);
+
+            // Hapus foto lama jika ada
+            if (
+                !empty($currentData['foto_tentang_kami']) &&
+                file_exists('../../../assets/img/appsetting/' . $currentData['foto_tentang_kami'])
+            ) {
+                unlink('../../../assets/img/appsetting/' . $currentData['foto_tentang_kami']);
+            }
+        }
+
         // Update atau insert data
         if (!empty($appSettingId) && $appSettingId > 0) {
             // Update existing record
@@ -171,7 +197,10 @@ function updateAppSetting($pdo)
                         name_header = ?, 
                         description_header = ?, 
                         background_header = ?, 
-                        video_header = ?
+                        video_header = ?,
+                        foto_tentang_kami = ?,
+                        judul_tentang_kami = ?,
+                        deskripsi_tentang_kami = ?
                     WHERE id_appsetting = ?";
             $stmt = $pdo->prepare($sql);
             $result = $stmt->execute([
@@ -181,13 +210,16 @@ function updateAppSetting($pdo)
                 $headerDescription,
                 $backgroundFilename,
                 $videoFilename,
+                $fotoTentangKami,
+                $judulTentangKami,
+                $deskripsiTentangKami,
                 $appSettingId
             ]);
         } else {
             // Insert new record
             $sql = "INSERT INTO tb_appsetting 
-                        (name, logo, name_header, description_header, background_header, video_header) 
-                    VALUES (?, ?, ?, ?, ?, ?)";
+                        (name, logo, name_header, description_header, background_header, video_header, foto_tentang_kami, judul_tentang_kami, deskripsi_tentang_kami) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
             $result = $stmt->execute([
                 $appName,
@@ -195,7 +227,10 @@ function updateAppSetting($pdo)
                 $headerName,
                 $headerDescription,
                 $backgroundFilename,
-                $videoFilename
+                $videoFilename,
+                $fotoTentangKami,
+                $judulTentangKami,
+                $deskripsiTentangKami
             ]);
         }
 

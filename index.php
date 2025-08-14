@@ -1,4 +1,5 @@
 <?php
+//index.php
 // Memulai session dan koneksi database
 if (session_status() == PHP_SESSION_NONE) {
   session_start();
@@ -9,9 +10,13 @@ include 'db/koneksi.php';
 
 // Include HomeController untuk menggunakan fungsi getAppSetting
 include 'controller/HomeController.php';
+include 'controller/KomentarController.php';
 
 // Ambil data app setting
 $appSetting = getAppSetting($pdo);
+
+// Ambil komentar yang isShow = 'true'
+$testimonials = getTestimonials($pdo);
 
 // Fungsi untuk memeriksa apakah file video exists
 function isValidVideoFile($filename)
@@ -428,6 +433,131 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
         padding: 15px;
       }
     }
+
+    /* Star Rating Styles */
+    .star-rating {
+      direction: rtl;
+      font-size: 2rem;
+      unicode-bidi: bidi-override;
+      display: inline-flex;
+      flex-direction: row-reverse;
+      gap: 5px;
+    }
+
+    .star-rating input {
+      display: none;
+    }
+
+    .star-rating label {
+      color: #ddd;
+      cursor: pointer;
+      transition: color 0.2s ease-in-out;
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .star-rating label:hover,
+    .star-rating label:hover~label {
+      color: #ffc107;
+    }
+
+    .star-rating input:checked~label {
+      color: #ffc107;
+    }
+
+    .star-rating input:checked~label:hover,
+    .star-rating input:checked~label:hover~label {
+      color: #ff9800;
+    }
+
+    .rating-container {
+      text-align: left;
+    }
+
+    /* Profile Avatar Styles */
+    .profile-avatar {
+      margin-bottom: 20px;
+    }
+
+    .avatar-placeholder {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 0 auto 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Testimonial Item Modifications */
+    .testimonial-item {
+      text-align: center;
+      padding: 30px;
+    }
+
+    .testimonial-item .stars {
+      margin-bottom: 20px;
+    }
+
+    .testimonial-item .stars i {
+      color: #ffc107;
+      font-size: 1.1rem;
+      margin: 0 2px;
+    }
+
+    /* Form Styles */
+    .php-email-form .loading {
+      display: none;
+      background: #fff;
+      text-align: center;
+      padding: 15px;
+      color: var(--accent-color);
+    }
+
+    .php-email-form .loading:before {
+      content: "";
+      display: inline-block;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      margin: 0 10px -6px 0;
+      border: 3px solid #18d26e;
+      border-top-color: #eee;
+      animation: animate-loading 1s linear infinite;
+    }
+
+    .php-email-form .error-message {
+      display: none;
+      background: #df1529;
+      color: #ffffff;
+      text-align: left;
+      padding: 15px;
+      font-weight: 600;
+    }
+
+    .php-email-form .sent-message {
+      display: none;
+      background: #18d26e;
+      color: #ffffff;
+      text-align: center;
+      padding: 15px;
+      font-weight: 600;
+    }
+
+    @keyframes animate-loading {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
   </style>
 </head>
 
@@ -452,9 +582,7 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
           <li><a href="#hero" class="active">Home</a></li>
           <li><a href="#profile">Profile</a></li>
           <li><a href="#agenda_kegiatan">Agenda Kegiatan</a></li>
-          <li><a href="#portfolio">Portfolio</a></li>
-          <li><a href="#team">Team</a></li>
-          <li><a href="#contact">Contact</a></li>
+          <li><a href="#portfolio">Histori Kegiatan</a></li>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
@@ -659,35 +787,29 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
 
         <div class="row gy-4">
           <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
-            <h3>Voluptatem dignissimos provident laboris nisi ut aliquip ex ea commodo</h3>
-            <img src="assets/img/about.jpg" class="img-fluid rounded-4 mb-4" alt="">
-            <p>Ut fugiat ut sunt quia veniam. Voluptate perferendis perspiciatis quod nisi et. Placeat debitis quia
-              recusandae odit et consequatur voluptatem. Dignissimos pariatur consectetur fugiat voluptas ea.</p>
-            <p>Temporibus nihil enim deserunt sed ea. Provident sit expedita aut cupiditate nihil vitae quo officia vel.
-              Blanditiis eligendi possimus et in cum. Quidem eos ut sint rem veniam qui. Ut ut repellendus nobis tempore
-              doloribus debitis explicabo similique sit. Accusantium sed ut omnis beatae neque deleniti repellendus.</p>
+            <?php if (!empty($appSetting['judul_tentang_kami'])): ?>
+              <h3><?php echo htmlspecialchars($appSetting['judul_tentang_kami']); ?></h3>
+            <?php else: ?>
+              <h3>Voluptatem dignissimos provident laboris nisi ut aliquip ex ea commodo</h3>
+            <?php endif; ?>
+
+            <?php if (!empty($appSetting['foto_tentang_kami'])): ?>
+              <img src="assets/img/appsetting/<?php echo htmlspecialchars($appSetting['foto_tentang_kami']); ?>" class="img-fluid rounded-4 mb-4" alt="Tentang Kami">
+            <?php else: ?>
+              <img src="assets/img/about.jpg" class="img-fluid rounded-4 mb-4" alt="">
+            <?php endif; ?>
           </div>
           <div class="col-lg-6" data-aos="fade-up" data-aos-delay="250">
             <div class="content ps-0 ps-lg-5">
-              <p class="fst-italic">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-                dolore
-                magna aliqua.
-              </p>
-              <ul>
-                <li><i class="bi bi-check-circle-fill"></i> <span>Ullamco laboris nisi ut aliquip ex ea commodo
-                    consequat.</span></li>
-                <li><i class="bi bi-check-circle-fill"></i> <span>Duis aute irure dolor in reprehenderit in voluptate
-                    velit.</span></li>
-                <li><i class="bi bi-check-circle-fill"></i> <span>Ullamco laboris nisi ut aliquip ex ea commodo
-                    consequat. Duis aute irure dolor in reprehenderit in voluptate trideta storacalaperda mastiro dolore
-                    eu fugiat nulla pariatur.</span></li>
-              </ul>
-              <p>
-                Ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-                voluptate
-                velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident
-              </p>
+              <?php if (!empty($appSetting['deskripsi_tentang_kami'])): ?>
+                <p><?php echo nl2br(htmlspecialchars($appSetting['deskripsi_tentang_kami'])); ?></p>
+              <?php else: ?>
+                <p>Ut fugiat ut sunt quia veniam. Voluptate perferendis perspiciatis quod nisi et. Placeat debitis quia
+                  recusandae odit et consequatur voluptatem. Dignissimos pariatur consectetur fugiat voluptas ea.</p>
+                <p>Temporibus nihil enim deserunt sed ea. Provident sit expedita aut cupiditate nihil vitae quo officia vel.
+                  Blanditiis eligendi possimus et in cum. Quidem eos ut sint rem veniam qui. Ut ut repellendus nobis tempore
+                  doloribus debitis explicabo similique sit. Accusantium sed ut omnis beatae neque deleniti repellendus.</p>
+              <?php endif; ?>
             </div>
           </div>
         </div>
@@ -769,13 +891,10 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
 
     </section><!-- /Portfolio Section -->
 
-    <!-- Testimonials Section -->
     <section id="testimonials" class="testimonials section dark-background">
-
       <img src="assets/img/testimonials-bg.jpg" class="testimonials-bg" alt="">
 
       <div class="container" data-aos="fade-up" data-aos-delay="100">
-
         <div class="swiper init-swiper">
           <script type="application/json" class="swiper-config">
             {
@@ -793,190 +912,128 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
             }
           </script>
           <div class="swiper-wrapper">
-
-            <div class="swiper-slide">
-              <div class="testimonial-item">
-                <img src="assets/img/testimonials/testimonials-1.jpg" class="testimonial-img" alt="">
-                <h3>Saul Goodman</h3>
-                <h4>Ceo &amp; Founder</h4>
-                <div class="stars">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                    class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+            <?php if (!empty($testimonials)): ?>
+              <?php foreach ($testimonials as $testimonial): ?>
+                <div class="swiper-slide">
+                  <div class="testimonial-item">
+                    <div class="profile-avatar">
+                      <?php
+                      // Generate avatar dengan inisial nama
+                      $initials = '';
+                      $nameParts = explode(' ', $testimonial['nama']);
+                      foreach ($nameParts as $part) {
+                        $initials .= strtoupper(substr($part, 0, 1));
+                      }
+                      $initials = substr($initials, 0, 2);
+                      ?>
+                      <div class="avatar-placeholder">
+                        <?php echo $initials; ?>
+                      </div>
+                    </div>
+                    <h3><?php echo htmlspecialchars($testimonial['nama']); ?></h3>
+                    <h4><?php echo htmlspecialchars($testimonial['instansi']); ?></h4>
+                    <div class="stars">
+                      <?php
+                      $rating = (int)$testimonial['rating'];
+                      for ($i = 1; $i <= 5; $i++) {
+                        if ($i <= $rating) {
+                          echo '<i class="bi bi-star-fill"></i>';
+                        } else {
+                          echo '<i class="bi bi-star"></i>';
+                        }
+                      }
+                      ?>
+                    </div>
+                    <p>
+                      <i class="bi bi-quote quote-icon-left"></i>
+                      <span><?php echo htmlspecialchars($testimonial['komentar']); ?></span>
+                      <i class="bi bi-quote quote-icon-right"></i>
+                    </p>
+                  </div>
                 </div>
-                <p>
-                  <i class="bi bi-quote quote-icon-left"></i>
-                  <span>Proin iaculis purus consequat sem cure digni ssim donec porttitora entum suscipit rhoncus.
-                    Accusantium quam, ultricies eget id, aliquam eget nibh et. Maecen aliquam, risus at semper.</span>
-                  <i class="bi bi-quote quote-icon-right"></i>
-                </p>
-              </div>
-            </div><!-- End testimonial item -->
-
-            <div class="swiper-slide">
-              <div class="testimonial-item">
-                <img src="assets/img/testimonials/testimonials-2.jpg" class="testimonial-img" alt="">
-                <h3>Sara Wilsson</h3>
-                <h4>Designer</h4>
-                <div class="stars">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                    class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <!-- Default testimonials jika belum ada komentar -->
+              <div class="swiper-slide">
+                <div class="testimonial-item">
+                  <div class="profile-avatar">
+                    <div class="avatar-placeholder">SG</div>
+                  </div>
+                  <h3>Saul Goodman</h3>
+                  <h4>CEO &amp; Founder</h4>
+                  <div class="stars">
+                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                  </div>
+                  <p>
+                    <i class="bi bi-quote quote-icon-left"></i>
+                    <span>Proin iaculis purus consequat sem cure digni ssim donec porttitora entum suscipit rhoncus. Accusantium quam, ultricies eget id, aliquam eget nibh et. Maecen aliquam, risus at semper.</span>
+                    <i class="bi bi-quote quote-icon-right"></i>
+                  </p>
                 </div>
-                <p>
-                  <i class="bi bi-quote quote-icon-left"></i>
-                  <span>Export tempor illum tamen malis malis eram quae irure esse labore quem cillum quid cillum eram
-                    malis quorum velit fore eram velit sunt aliqua noster fugiat irure amet legam anim culpa.</span>
-                  <i class="bi bi-quote quote-icon-right"></i>
-                </p>
               </div>
-            </div><!-- End testimonial item -->
-
-            <div class="swiper-slide">
-              <div class="testimonial-item">
-                <img src="assets/img/testimonials/testimonials-3.jpg" class="testimonial-img" alt="">
-                <h3>Jena Karlis</h3>
-                <h4>Store Owner</h4>
-                <div class="stars">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                    class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                </div>
-                <p>
-                  <i class="bi bi-quote quote-icon-left"></i>
-                  <span>Enim nisi quem export duis labore cillum quae magna enim sint quorum nulla quem veniam duis
-                    minim tempor labore quem eram duis noster aute amet eram fore quis sint minim.</span>
-                  <i class="bi bi-quote quote-icon-right"></i>
-                </p>
-              </div>
-            </div><!-- End testimonial item -->
-
-            <div class="swiper-slide">
-              <div class="testimonial-item">
-                <img src="assets/img/testimonials/testimonials-4.jpg" class="testimonial-img" alt="">
-                <h3>Matt Brandon</h3>
-                <h4>Freelancer</h4>
-                <div class="stars">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                    class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                </div>
-                <p>
-                  <i class="bi bi-quote quote-icon-left"></i>
-                  <span>Fugiat enim eram quae cillum dolore dolor amet nulla culpa multos export minim fugiat minim
-                    velit minim dolor enim duis veniam ipsum anim magna sunt elit fore quem dolore labore illum
-                    veniam.</span>
-                  <i class="bi bi-quote quote-icon-right"></i>
-                </p>
-              </div>
-            </div><!-- End testimonial item -->
-
-            <div class="swiper-slide">
-              <div class="testimonial-item">
-                <img src="assets/img/testimonials/testimonials-5.jpg" class="testimonial-img" alt="">
-                <h3>John Larson</h3>
-                <h4>Entrepreneur</h4>
-                <div class="stars">
-                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
-                    class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                </div>
-                <p>
-                  <i class="bi bi-quote quote-icon-left"></i>
-                  <span>Quis quorum aliqua sint quem legam fore sunt eram irure aliqua veniam tempor noster veniam enim
-                    culpa labore duis sunt culpa nulla illum cillum fugiat legam esse veniam culpa fore nisi cillum
-                    quid.</span>
-                  <i class="bi bi-quote quote-icon-right"></i>
-                </p>
-              </div>
-            </div><!-- End testimonial item -->
-
+            <?php endif; ?>
           </div>
           <div class="swiper-pagination"></div>
         </div>
-
       </div>
-
     </section><!-- /Testimonials Section -->
 
-    <!-- Contact Section -->
-    <section id="contact" class="contact section">
-
+    <!-- Komentar Section -->
+    <section id="komentar" class="contact section">
       <!-- Section Title -->
       <div class="container section-title" data-aos="fade-up">
-        <h2>Contact</h2>
-        <p>Necessitatibus eius consequatur</p>
+        <h2>Berikan Komentar</h2>
+        <p>Bagikan pengalaman Anda dengan kami</p>
       </div><!-- End Section Title -->
 
       <div class="container" data-aos="fade-up" data-aos-delay="100">
-
-        <div class="row gy-4">
-          <div class="col-lg-6 ">
-            <div class="row gy-4">
-
-              <div class="col-lg-12">
-                <div class="info-item d-flex flex-column justify-content-center align-items-center" data-aos="fade-up"
-                  data-aos-delay="200">
-                  <i class="bi bi-geo-alt"></i>
-                  <h3>Address</h3>
-                  <p>A108 Adam Street, New York, NY 535022</p>
-                </div>
-              </div><!-- End Info Item -->
-
-              <div class="col-md-6">
-                <div class="info-item d-flex flex-column justify-content-center align-items-center" data-aos="fade-up"
-                  data-aos-delay="300">
-                  <i class="bi bi-telephone"></i>
-                  <h3>Call Us</h3>
-                  <p>+1 5589 55488 55</p>
-                </div>
-              </div><!-- End Info Item -->
-
-              <div class="col-md-6">
-                <div class="info-item d-flex flex-column justify-content-center align-items-center" data-aos="fade-up"
-                  data-aos-delay="400">
-                  <i class="bi bi-envelope"></i>
-                  <h3>Email Us</h3>
-                  <p>info@example.com</p>
-                </div>
-              </div><!-- End Info Item -->
-
-            </div>
-          </div>
-
-          <div class="col-lg-6">
-            <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up"
-              data-aos-delay="500">
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
+            <form id="komentarForm" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
               <div class="row gy-4">
+                <div class="col-md-6">
+                  <input type="text" name="nama" class="form-control" placeholder="Nama Lengkap" required>
+                </div>
 
                 <div class="col-md-6">
-                  <input type="text" name="name" class="form-control" placeholder="Your Name" required="">
-                </div>
-
-                <div class="col-md-6 ">
-                  <input type="email" class="form-control" name="email" placeholder="Your Email" required="">
+                  <input type="text" name="instansi" class="form-control" placeholder="Instansi/Perusahaan" required>
                 </div>
 
                 <div class="col-md-12">
-                  <input type="text" class="form-control" name="subject" placeholder="Subject" required="">
+                  <label class="form-label">Rating</label>
+                  <div class="rating-container mb-3">
+                    <div class="star-rating">
+                      <input type="radio" id="star5" name="rating" value="5" required>
+                      <label for="star5" title="5 bintang">★</label>
+                      <input type="radio" id="star4" name="rating" value="4">
+                      <label for="star4" title="4 bintang">★</label>
+                      <input type="radio" id="star3" name="rating" value="3">
+                      <label for="star3" title="3 bintang">★</label>
+                      <input type="radio" id="star2" name="rating" value="2">
+                      <label for="star2" title="2 bintang">★</label>
+                      <input type="radio" id="star1" name="rating" value="1">
+                      <label for="star1" title="1 bintang">★</label>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="col-md-12">
-                  <textarea class="form-control" name="message" rows="4" placeholder="Message" required=""></textarea>
+                  <textarea class="form-control" name="komentar" rows="6" placeholder="Tulis komentar Anda..." required></textarea>
                 </div>
 
                 <div class="col-md-12 text-center">
                   <div class="loading">Loading</div>
                   <div class="error-message"></div>
-                  <div class="sent-message">Your message has been sent. Thank you!</div>
+                  <div class="sent-message">Komentar Anda berhasil dikirim. Terima kasih!</div>
 
-                  <button type="submit">Send Message</button>
+                  <button type="submit">Kirim Komentar</button>
                 </div>
-
               </div>
             </form>
           </div><!-- End Contact Form -->
-
         </div>
-
       </div>
-
-    </section><!-- /Contact Section -->
+    </section><!-- /Komentar Section -->
 
   </main>
 
@@ -1005,11 +1062,10 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
         <div class="col-lg-2 col-md-3 footer-links">
           <h4>Useful Links</h4>
           <ul>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Home</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">About us</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Services</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Terms of service</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Privacy policy</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="#hero">Home</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="#profile">Profile</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="#agenda_kegiatan">Agenda Kegiatan</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="#portfolio">Histori Kegiatan</a></li>
           </ul>
         </div>
       </div>
@@ -1039,6 +1095,7 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
 
   <!-- Controllers -->
   <script src="controller/HomeController.js"></script>
+  <script src="controller/KomentarController.js"></script>
   <script>
     // Fix untuk video GLightbox
     document.addEventListener('DOMContentLoaded', function() {

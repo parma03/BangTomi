@@ -1,4 +1,5 @@
 <?php
+// appsetting/kontrolPanel.php
 session_start();
 include '../../db/koneksi.php';
 include 'controller/AppSettingController.php';
@@ -315,6 +316,30 @@ $appSetting = getAppSetting($pdo);
                                                     <small class="text-white-50 mt-2 d-block">Klik untuk memperbesar</small>
                                                 </div>
                                             <?php endif; ?>
+
+                                            <?php if (!empty($appSetting['foto_tentang_kami']) || !empty($appSetting['judul_tentang_kami']) || !empty($appSetting['deskripsi_tentang_kami'])): ?>
+                                                <div class="file-info">
+                                                    <h6 class="text-white mb-2">Tentang Kami:</h6>
+
+                                                    <?php if (!empty($appSetting['judul_tentang_kami'])): ?>
+                                                        <p class="mb-1"><strong>Judul:</strong> <?php echo htmlspecialchars($appSetting['judul_tentang_kami']); ?></p>
+                                                    <?php endif; ?>
+
+                                                    <?php if (!empty($appSetting['deskripsi_tentang_kami'])): ?>
+                                                        <p class="mb-2"><strong>Deskripsi:</strong> <?php echo htmlspecialchars(substr($appSetting['deskripsi_tentang_kami'], 0, 100)); ?><?php echo strlen($appSetting['deskripsi_tentang_kami']) > 100 ? '...' : ''; ?></p>
+                                                    <?php endif; ?>
+
+                                                    <?php if (!empty($appSetting['foto_tentang_kami'])): ?>
+                                                        <div class="preview-container">
+                                                            <img src="../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['foto_tentang_kami']); ?>"
+                                                                alt="Foto Tentang Kami"
+                                                                style="cursor: pointer;"
+                                                                onclick="showMediaPreview('../../assets/img/appsetting/<?php echo htmlspecialchars($appSetting['foto_tentang_kami']); ?>', 'image', 'Foto Tentang Kami')">
+                                                        </div>
+                                                        <small class="text-white-50 mt-2 d-block">Klik untuk memperbesar</small>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
@@ -409,6 +434,42 @@ $appSetting = getAppSetting($pdo);
                                                 </div>
                                                 <input type="file" id="video_header" name="video_header" class="d-none" accept="video/*">
                                                 <div id="videoPreview" class="mt-3" style="display: none;"></div>
+                                            </div>
+
+                                            <!-- Judul Tentang Kami -->
+                                            <div class="mb-3">
+                                                <label for="judul_tentang_kami" class="form-label fw-semibold">
+                                                    <i class="bx bx-title text-primary me-1"></i>Judul Tentang Kami
+                                                </label>
+                                                <input type="text" class="form-control" id="judul_tentang_kami"
+                                                    name="judul_tentang_kami" value="<?php echo htmlspecialchars($appSetting['judul_tentang_kami'] ?? ''); ?>"
+                                                    placeholder="Masukkan judul untuk bagian tentang kami">
+                                            </div>
+
+                                            <!-- Deskripsi Tentang Kami -->
+                                            <div class="mb-3">
+                                                <label for="deskripsi_tentang_kami" class="form-label fw-semibold">
+                                                    <i class="bx bx-text text-info me-1"></i>Deskripsi Tentang Kami
+                                                </label>
+                                                <textarea class="form-control" id="deskripsi_tentang_kami" name="deskripsi_tentang_kami"
+                                                    rows="4" placeholder="Masukkan deskripsi untuk bagian tentang kami"><?php echo htmlspecialchars($appSetting['deskripsi_tentang_kami'] ?? ''); ?></textarea>
+                                            </div>
+
+                                            <!-- Foto Tentang Kami Upload -->
+                                            <div class="mb-4">
+                                                <label for="foto_tentang_kami" class="form-label fw-semibold">
+                                                    <i class="bx bx-image text-warning me-1"></i>Foto Tentang Kami
+                                                </label>
+                                                <div class="file-upload-area" id="fotoTentangKamiUploadArea">
+                                                    <div class="upload-placeholder">
+                                                        <i class="bx bx-image-add upload-icon" style="font-size: 3rem; color: #ffc107;"></i>
+                                                        <h6 class="mt-3 mb-2">Upload Foto Tentang Kami</h6>
+                                                        <p class="text-muted mb-0">Klik atau drag & drop foto untuk bagian tentang kami</p>
+                                                        <small class="text-muted">Maksimal 5MB (JPG, PNG, GIF)</small>
+                                                    </div>
+                                                </div>
+                                                <input type="file" id="foto_tentang_kami" name="foto_tentang_kami" class="d-none" accept="image/*">
+                                                <div id="fotoTentangKamiPreview" class="mt-3" style="display: none;"></div>
                                             </div>
 
                                             <!-- Submit Button -->

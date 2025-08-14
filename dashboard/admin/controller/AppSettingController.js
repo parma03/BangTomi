@@ -396,6 +396,89 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // File Upload Handler for Foto Tentang Kami
+  const fotoTentangKamiInput = document.getElementById("foto_tentang_kami");
+  const fotoTentangKamiPreview = document.getElementById(
+    "fotoTentangKamiPreview"
+  );
+  const fotoTentangKamiUploadArea = document.getElementById(
+    "fotoTentangKamiUploadArea"
+  );
+
+  if (
+    fotoTentangKamiInput &&
+    fotoTentangKamiPreview &&
+    fotoTentangKamiUploadArea
+  ) {
+    // Click handler
+    fotoTentangKamiUploadArea.addEventListener("click", function (e) {
+      e.preventDefault();
+      fotoTentangKamiInput.click();
+    });
+
+    // Drag and drop handlers
+    fotoTentangKamiUploadArea.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      this.classList.add("dragover");
+    });
+
+    fotoTentangKamiUploadArea.addEventListener("dragleave", function (e) {
+      e.preventDefault();
+      this.classList.remove("dragover");
+    });
+
+    fotoTentangKamiUploadArea.addEventListener("drop", function (e) {
+      e.preventDefault();
+      this.classList.remove("dragover");
+
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith("image/")) {
+          fotoTentangKamiInput.files = files;
+          handleFilePreview(file, fotoTentangKamiPreview, "Foto Tentang Kami");
+        } else {
+          showAlert(
+            "Hanya file gambar yang diperbolehkan untuk foto tentang kami",
+            "warning"
+          );
+        }
+      }
+    });
+
+    fotoTentangKamiInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        // Validasi ukuran file (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          showAlert("Ukuran file foto tentang kami maksimal 5MB", "warning");
+          this.value = "";
+          fotoTentangKamiPreview.style.display = "none";
+          return;
+        }
+
+        // Validasi tipe file
+        const allowedTypes = [
+          "image/jpeg",
+          "image/jpg",
+          "image/png",
+          "image/gif",
+        ];
+        if (!allowedTypes.includes(file.type)) {
+          showAlert(
+            "Hanya file JPG, PNG, dan GIF yang diperbolehkan untuk foto tentang kami",
+            "warning"
+          );
+          this.value = "";
+          fotoTentangKamiPreview.style.display = "none";
+          return;
+        }
+
+        handleFilePreview(file, fotoTentangKamiPreview, "Foto Tentang Kami");
+      }
+    });
+  }
+
   // Form submission handler
   const appSettingForm = document.getElementById("appSettingForm");
   if (appSettingForm) {
@@ -560,6 +643,10 @@ function clearPreview(type) {
     case "videoheader":
       inputId = "video_header";
       previewId = "videoPreview";
+      break;
+    case "fototentangkami":
+      inputId = "foto_tentang_kami";
+      previewId = "fotoTentangKamiPreview";
       break;
   }
 
