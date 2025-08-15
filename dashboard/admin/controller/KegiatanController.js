@@ -1326,8 +1326,22 @@ $(document).ready(function () {
       $(e.target).hasClass("upload-placeholder") ||
       $(e.target).closest(".upload-placeholder").length > 0
     ) {
-      $("#dokumentasiFiles").trigger("click");
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Cek apakah ini area upload rekap
+      if ($(this).closest("#uploadRekapModal").length > 0) {
+        $("#rekapFiles").trigger("click");
+      } else {
+        $("#dokumentasiFiles").trigger("click");
+      }
     }
+  });
+
+  $("#clearRekapFiles").on("click", function () {
+    $("#rekapFiles").val("");
+    $("#rekapPreviewContainer").hide();
+    $("#uploadPlaceholderRekap").show();
   });
 
   // Handler untuk hapus semua file
@@ -1638,7 +1652,7 @@ $(document).ready(function () {
 
   // Handler untuk upload multiple files rekap
   $("#rekapFiles").on("change", function () {
-    previewMultipleFiles(this.files, "rekap");
+    previewMultipleFilesRekap(this.files);
   });
 
   // Handler untuk drag & drop rekap
@@ -1658,10 +1672,68 @@ $(document).ready(function () {
 
     const files = e.originalEvent.dataTransfer.files;
     if (files.length > 0) {
-      document.getElementById("rekapFiles").files = files;
-      previewMultipleFiles(files, "rekap");
+      // Cek apakah ini area upload rekap atau dokumentasi
+      if ($(this).closest("#uploadRekapModal").length > 0) {
+        document.getElementById("rekapFiles").files = files;
+        previewMultipleFilesRekap(files);
+      } else {
+        document.getElementById("dokumentasiFiles").files = files;
+        previewMultipleFiles(files);
+      }
     }
   });
+
+  function previewMultipleFilesRekap(files) {
+    const previewContainer = $("#rekapPreviewContainer");
+    const previewList = $("#rekapPreviewList");
+    const placeholder = $("#uploadPlaceholderRekap");
+
+    if (files.length === 0) {
+      previewContainer.hide();
+      placeholder.show();
+      return;
+    }
+
+    previewList.empty();
+
+    Array.from(files).forEach((file, index) => {
+      if (!validateFile(file)) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const isVideo = file.type.startsWith("video/");
+        const previewHtml = `
+        <div class="col-md-3 col-sm-4 col-6 mb-3">
+          <div class="file-preview-item">
+            <button type="button" class="btn btn-danger btn-sm remove-file" onclick="removeRekapFilePreview(this, ${index})">
+              <i class="bx bx-x"></i>
+            </button>
+            ${
+              isVideo
+                ? `<video class="file-preview-video" controls>
+                    <source src="${e.target.result}" type="${file.type}">
+                  </video>`
+                : `<img src="${e.target.result}" class="file-preview-image" alt="Preview">`
+            }
+            <div class="mt-2">
+              <small class="text-muted d-block">${file.name}</small>
+              <small class="text-muted">${(file.size / 1024 / 1024).toFixed(
+                2
+              )} MB</small>
+            </div>
+          </div>
+        </div>
+      `;
+        previewList.append(previewHtml);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    placeholder.hide();
+    previewContainer.show();
+  }
 
   // Fungsi untuk upload rekap dokumentasi
   function uploadRekapDokumentasi() {
@@ -1755,5 +1827,39 @@ window.removeFilePreview = function (button, index) {
   $("#filesPreviewList .file-preview-item").each(function (newIndex) {
     const removeBtn = $(this).find(".remove-file");
     removeBtn.attr("onclick", `removeFilePreview(this, ${newIndex})`);
+  });
+};
+
+window.removeRekapFilePreview = function (button, index) {
+  console.log("Removing rekap file at index:", index);
+
+  // Remove preview item
+  $(button).closest(".col-md-3, .col-sm-4, .col-6").remove();
+
+  // Update file input
+  const input = document.getElementById("rekapFiles");
+  if (!input || !input.files) return;
+
+  const dt = new DataTransfer();
+  const files = Array.from(input.files);
+
+  files.forEach((file, i) => {
+    if (i !== index) {
+      dt.items.add(file);
+    }
+  });
+
+  input.files = dt.files;
+
+  // Check if no files left
+  if (input.files.length === 0) {
+    $("#rekapPreviewContainer").hide();
+    $("#uploadPlaceholderRekap").show();
+  }
+
+  // Re-index remaining buttons
+  $("#rekapPreviewList .file-preview-item").each(function (newIndex) {
+    const removeBtn = $(this).find(".remove-file");
+    removeBtn.attr("onclick", `removeRekapFilePreview(this, ${newIndex})`);
   });
 };
