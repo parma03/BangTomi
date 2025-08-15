@@ -1427,31 +1427,6 @@ $(document).ready(function () {
     return true;
   }
 
-  // Fungsi untuk remove file dari preview
-  function removeFilePreview(button, index) {
-    // Remove preview item
-    $(button).closest(".col-md-3").remove();
-
-    // Update file input (ini tricky karena file input tidak bisa diubah langsung)
-    const input = document.getElementById("dokumentasiFiles");
-    const dt = new DataTransfer();
-    const files = Array.from(input.files);
-
-    files.forEach((file, i) => {
-      if (i !== index) {
-        dt.items.add(file);
-      }
-    });
-
-    input.files = dt.files;
-
-    // Check if no files left
-    if (input.files.length === 0) {
-      $("#filesPreviewContainer").hide();
-      $("#uploadPlaceholderDokumentasi").show();
-    }
-  }
-
   // Fungsi untuk menampilkan form selesaikan kegiatan
   function showSelesaikanKegiatanForm(kegiatanId, kegiatanName) {
     $("#kegiatanIdSelesai").val(kegiatanId);
@@ -1520,3 +1495,38 @@ $(document).ready(function () {
     });
   }
 });
+
+// Fungsi untuk remove file dari preview
+window.removeFilePreview = function (button, index) {
+  console.log("Removing file at index:", index);
+
+  // Remove preview item
+  $(button).closest(".col-md-3, .col-sm-4, .col-6").remove();
+
+  // Update file input
+  const input = document.getElementById("dokumentasiFiles");
+  if (!input || !input.files) return;
+
+  const dt = new DataTransfer();
+  const files = Array.from(input.files);
+
+  files.forEach((file, i) => {
+    if (i !== index) {
+      dt.items.add(file);
+    }
+  });
+
+  input.files = dt.files;
+
+  // Check if no files left
+  if (input.files.length === 0) {
+    $("#filesPreviewContainer").hide();
+    $("#uploadPlaceholderDokumentasi").show();
+  }
+
+  // Re-index remaining buttons
+  $("#filesPreviewList .file-preview-item").each(function (newIndex) {
+    const removeBtn = $(this).find(".remove-file");
+    removeBtn.attr("onclick", `removeFilePreview(this, ${newIndex})`);
+  });
+};
