@@ -1326,8 +1326,22 @@ $(document).ready(function () {
       $(e.target).hasClass("upload-placeholder") ||
       $(e.target).closest(".upload-placeholder").length > 0
     ) {
-      $("#dokumentasiFiles").trigger("click");
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Cek apakah ini area upload rekap
+      if ($(this).closest("#uploadRekapModal").length > 0) {
+        $("#rekapFiles").trigger("click");
+      } else {
+        $("#dokumentasiFiles").trigger("click");
+      }
     }
+  });
+
+  $("#clearRekapFiles").on("click", function () {
+    $("#rekapFiles").val("");
+    $("#rekapPreviewContainer").hide();
+    $("#uploadPlaceholderRekap").show();
   });
 
   // Handler untuk hapus semua file
@@ -1427,31 +1441,6 @@ $(document).ready(function () {
     return true;
   }
 
-  // Fungsi untuk remove file dari preview
-  function removeFilePreview(button, index) {
-    // Remove preview item
-    $(button).closest(".col-md-3").remove();
-
-    // Update file input (ini tricky karena file input tidak bisa diubah langsung)
-    const input = document.getElementById("dokumentasiFiles");
-    const dt = new DataTransfer();
-    const files = Array.from(input.files);
-
-    files.forEach((file, i) => {
-      if (i !== index) {
-        dt.items.add(file);
-      }
-    });
-
-    input.files = dt.files;
-
-    // Check if no files left
-    if (input.files.length === 0) {
-      $("#filesPreviewContainer").hide();
-      $("#uploadPlaceholderDokumentasi").show();
-    }
-  }
-
   // Fungsi untuk menampilkan form selesaikan kegiatan
   function showSelesaikanKegiatanForm(kegiatanId, kegiatanName) {
     $("#kegiatanIdSelesai").val(kegiatanId);
@@ -1519,4 +1508,358 @@ $(document).ready(function () {
       },
     });
   }
+
+  // Handler untuk tombol upload rekap
+  $(document).on("click", ".upload-rekap-btn", function () {
+    const kegiatanId = $(this).data("id");
+    const kegiatanName = $(this).data("name");
+    showUploadRekapModal(kegiatanId, kegiatanName);
+  });
+
+  // Fungsi untuk menampilkan modal upload rekap
+  function showUploadRekapModal(kegiatanId, kegiatanName) {
+    $("#kegiatanIdRekap").val(kegiatanId);
+    $("#namaKegiatanRekap").text(kegiatanName);
+
+    // Reset form
+    $("#uploadRekapForm")[0].reset();
+    $("#rekapPreviewContainer").hide();
+    $("#uploadPlaceholderRekap").show();
+    $("#existingFilesList").empty();
+    $("#noFilesMessage").show();
+
+    // Load existing files
+    loadExistingDokumentasi(kegiatanId);
+
+    $("#uploadRekapModal").modal("show");
+  }
+
+  // Fungsi untuk load existing dokumentasi
+  function loadExistingDokumentasi(kegiatanId) {
+    showLoading("Memuat dokumentasi yang sudah ada...");
+
+    $.ajax({
+      type: "POST",
+      url: "controller/KegiatanController.php",
+      data: {
+        request: "get_existing_dokumentasi",
+        kegiatan_id: kegiatanId,
+      },
+      dataType: "json",
+      success: function (response) {
+        hideLoading();
+
+        if (response.status === "success") {
+          const filesList = $("#existingFilesList");
+          filesList.empty();
+
+          if (response.data.length > 0) {
+            $("#noFilesMessage").hide();
+
+            response.data.forEach((file) => {
+              const isVideo = file.record_kegiatan.match(
+                /\.(mp4|avi|mov|wmv|webm)$/i
+              );
+              const filePath =
+                "../../assets/img/dokumentasi/" + file.record_kegiatan;
+
+              const fileHtml = `
+                            <div class="col-md-3 col-sm-4 col-6 mb-3">
+                                <div class="file-preview-item">
+                                    <button type="button" class="btn btn-danger btn-sm remove-file" 
+                                            onclick="deleteDokumentasiRecord(${
+                                              file.id_foto_kegiatan
+                                            }, this)">
+                                        <i class="bx bx-trash"></i>
+                                    </button>
+                                    ${
+                                      isVideo
+                                        ? `<video class="file-preview-video" controls>
+                                            <source src="${filePath}" type="video/mp4">
+                                        </video>`
+                                        : `<img src="${filePath}" class="file-preview-image" alt="Preview">`
+                                    }
+                                    <div class="mt-2">
+                                        <small class="text-muted d-block">${
+                                          file.record_kegiatan
+                                        }</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+              filesList.append(fileHtml);
+            });
+          } else {
+            $("#noFilesMessage").show();
+          }
+        } else {
+          showAlert(response.message, "warning");
+        }
+      },
+      error: function (xhr, status, error) {
+        hideLoading();
+        console.error("Error loading dokumentasi:", error);
+        showAlert("Gagal memuat dokumentasi yang sudah ada", "danger");
+      },
+    });
+  }
+
+  // Fungsi untuk delete dokumentasi record
+  window.deleteDokumentasiRecord = function (recordId, element) {
+    showConfirmation(
+      "Apakah Anda yakin ingin menghapus dokumentasi ini?",
+      function () {
+        showLoading("Menghapus dokumentasi...");
+
+        $.ajax({
+          type: "POST",
+          url: "controller/KegiatanController.php",
+          data: {
+            request: "delete_dokumentasi",
+            record_id: recordId,
+          },
+          dataType: "json",
+          success: function (response) {
+            hideLoading();
+
+            if (response.status === "success") {
+              showAlert(response.message, "success");
+              $(element).closest(".col-md-3, .col-sm-4, .col-6").remove();
+
+              // Jika tidak ada file lagi, tampilkan pesan
+              if ($("#existingFilesList").children().length === 0) {
+                $("#noFilesMessage").show();
+              }
+            } else {
+              showAlert(response.message, "danger");
+            }
+          },
+          error: function (xhr, status, error) {
+            hideLoading();
+            console.error("Error deleting dokumentasi:", error);
+            showAlert("Gagal menghapus dokumentasi", "danger");
+          },
+        });
+      }
+    );
+  };
+
+  // Handler untuk form upload rekap
+  $("#uploadRekapForm").on("submit", function (e) {
+    e.preventDefault();
+    uploadRekapDokumentasi();
+  });
+
+  // Handler untuk upload multiple files rekap
+  $("#rekapFiles").on("change", function () {
+    previewMultipleFilesRekap(this.files);
+  });
+
+  // Handler untuk drag & drop rekap
+  $(".photo-upload-area").on("dragover", function (e) {
+    e.preventDefault();
+    $(this).addClass("dragover");
+  });
+
+  $(".photo-upload-area").on("dragleave", function (e) {
+    e.preventDefault();
+    $(this).removeClass("dragover");
+  });
+
+  $(".photo-upload-area").on("drop", function (e) {
+    e.preventDefault();
+    $(this).removeClass("dragover");
+
+    const files = e.originalEvent.dataTransfer.files;
+    if (files.length > 0) {
+      // Cek apakah ini area upload rekap atau dokumentasi
+      if ($(this).closest("#uploadRekapModal").length > 0) {
+        document.getElementById("rekapFiles").files = files;
+        previewMultipleFilesRekap(files);
+      } else {
+        document.getElementById("dokumentasiFiles").files = files;
+        previewMultipleFiles(files);
+      }
+    }
+  });
+
+  function previewMultipleFilesRekap(files) {
+    const previewContainer = $("#rekapPreviewContainer");
+    const previewList = $("#rekapPreviewList");
+    const placeholder = $("#uploadPlaceholderRekap");
+
+    if (files.length === 0) {
+      previewContainer.hide();
+      placeholder.show();
+      return;
+    }
+
+    previewList.empty();
+
+    Array.from(files).forEach((file, index) => {
+      if (!validateFile(file)) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const isVideo = file.type.startsWith("video/");
+        const previewHtml = `
+        <div class="col-md-3 col-sm-4 col-6 mb-3">
+          <div class="file-preview-item">
+            <button type="button" class="btn btn-danger btn-sm remove-file" onclick="removeRekapFilePreview(this, ${index})">
+              <i class="bx bx-x"></i>
+            </button>
+            ${
+              isVideo
+                ? `<video class="file-preview-video" controls>
+                    <source src="${e.target.result}" type="${file.type}">
+                  </video>`
+                : `<img src="${e.target.result}" class="file-preview-image" alt="Preview">`
+            }
+            <div class="mt-2">
+              <small class="text-muted d-block">${file.name}</small>
+              <small class="text-muted">${(file.size / 1024 / 1024).toFixed(
+                2
+              )} MB</small>
+            </div>
+          </div>
+        </div>
+      `;
+        previewList.append(previewHtml);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    placeholder.hide();
+    previewContainer.show();
+  }
+
+  // Fungsi untuk upload rekap dokumentasi
+  function uploadRekapDokumentasi() {
+    const form = $("#uploadRekapForm");
+    const formData = new FormData(form[0]);
+    const submitBtn = $("#submitRekapBtn");
+    const files = document.getElementById("rekapFiles").files;
+
+    // Validasi minimal 1 file
+    if (files.length === 0) {
+      showAlert("Minimal upload 1 file dokumentasi!", "warning");
+      return;
+    }
+
+    // Disable submit button
+    submitBtn
+      .prop("disabled", true)
+      .html('<i class="bx bx-loader-alt bx-spin me-1"></i>Memproses...');
+
+    formData.append("request", "upload_rekap_kegiatan");
+
+    // Show loading
+    showLoading("Mengupload dokumentasi tambahan...");
+
+    $.ajax({
+      type: "POST",
+      url: "controller/KegiatanController.php",
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: "json",
+      success: function (response) {
+        hideLoading();
+        submitBtn
+          .prop("disabled", false)
+          .html('<i class="bx bx-upload me-1"></i>Upload Dokumentasi');
+
+        if (response.status === "success") {
+          showAlert(response.message, "success");
+          // Reset form
+          form[0].reset();
+          $("#rekapPreviewContainer").hide();
+          $("#uploadPlaceholderRekap").show();
+          // Reload existing files
+          loadExistingDokumentasi($("#kegiatanIdRekap").val());
+        } else {
+          showAlert(response.message, "danger");
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error("AJAX error:", xhr, status, error);
+        hideLoading();
+        submitBtn
+          .prop("disabled", false)
+          .html('<i class="bx bx-upload me-1"></i>Upload Dokumentasi');
+        showAlert("Terjadi kesalahan saat memproses data!", "danger");
+      },
+    });
+  }
 });
+
+// Fungsi untuk remove file dari preview
+window.removeFilePreview = function (button, index) {
+  console.log("Removing file at index:", index);
+
+  // Remove preview item
+  $(button).closest(".col-md-3, .col-sm-4, .col-6").remove();
+
+  // Update file input
+  const input = document.getElementById("dokumentasiFiles");
+  if (!input || !input.files) return;
+
+  const dt = new DataTransfer();
+  const files = Array.from(input.files);
+
+  files.forEach((file, i) => {
+    if (i !== index) {
+      dt.items.add(file);
+    }
+  });
+
+  input.files = dt.files;
+
+  // Check if no files left
+  if (input.files.length === 0) {
+    $("#filesPreviewContainer").hide();
+    $("#uploadPlaceholderDokumentasi").show();
+  }
+
+  // Re-index remaining buttons
+  $("#filesPreviewList .file-preview-item").each(function (newIndex) {
+    const removeBtn = $(this).find(".remove-file");
+    removeBtn.attr("onclick", `removeFilePreview(this, ${newIndex})`);
+  });
+};
+
+window.removeRekapFilePreview = function (button, index) {
+  console.log("Removing rekap file at index:", index);
+
+  // Remove preview item
+  $(button).closest(".col-md-3, .col-sm-4, .col-6").remove();
+
+  // Update file input
+  const input = document.getElementById("rekapFiles");
+  if (!input || !input.files) return;
+
+  const dt = new DataTransfer();
+  const files = Array.from(input.files);
+
+  files.forEach((file, i) => {
+    if (i !== index) {
+      dt.items.add(file);
+    }
+  });
+
+  input.files = dt.files;
+
+  // Check if no files left
+  if (input.files.length === 0) {
+    $("#rekapPreviewContainer").hide();
+    $("#uploadPlaceholderRekap").show();
+  }
+
+  // Re-index remaining buttons
+  $("#rekapPreviewList .file-preview-item").each(function (newIndex) {
+    const removeBtn = $(this).find(".remove-file");
+    removeBtn.attr("onclick", `removeRekapFilePreview(this, ${newIndex})`);
+  });
+};

@@ -566,7 +566,7 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
   <header id="header" class="header d-flex align-items-center fixed-top">
     <div class="container-fluid container-xl position-relative d-flex align-items-center">
 
-      <a href="index.html" class="logo d-flex align-items-center me-auto">
+      <a href="index.php" class="logo d-flex align-items-center me-auto">
         <!-- Uncomment the line below if you also wish to use an image logo -->
         <?php if (!empty($appSetting['logo']) && $appSetting['logo'] !== 'favicon.ico'): ?>
           <img src="assets/img/favicon/<?php echo htmlspecialchars($appSetting['logo']); ?>" alt="Logo">

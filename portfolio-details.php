@@ -69,6 +69,41 @@ $kegiatan = null;
 if ($kegiatan_id > 0) {
     $kegiatan = getKegiatanDetail($pdo, $kegiatan_id);
 }
+
+function getKegiatanRecord($pdo, $id)
+{
+    try {
+        $sql = "SELECT record_kegiatan FROM tb_record_kegiatan WHERE id_kegiatan = ? ORDER BY id_foto_kegiatan ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$id]);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $result;
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
+// Function to check if file is video
+function isVideoFile($filename)
+{
+    $videoExtensions = ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv'];
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    return in_array($extension, $videoExtensions);
+}
+
+// Function to check if file exists
+function fileExists($path)
+{
+    return file_exists($path) && is_readable($path);
+}
+
+// Tambahkan setelah mengambil data kegiatan
+$kegiatanRecord = [];
+if ($kegiatan_id > 0) {
+    $kegiatan = getKegiatanDetail($pdo, $kegiatan_id);
+    $kegiatanRecord = getKegiatanRecord($pdo, $kegiatan_id);
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -100,6 +135,200 @@ if ($kegiatan_id > 0) {
     <link href="assets/css/main.css" rel="stylesheet">
 
     <style>
+        /* CSS yang sudah ada tetap sama */
+        .video-overlay {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-overlay video {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Perbaikan untuk video container */
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .video-container video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Fallback untuk thumbnail video yang tidak dapat dimuat */
+        .video-fallback {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .video-fallback i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        /* Record slider styling - tetap sama */
+        .record-video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .portfolio-details-slider {
+            margin-bottom: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .portfolio-details-slider .swiper-slide {
+            width: 100%;
+            height: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+        }
+
+        .portfolio-details-slider .swiper-slide img,
+        .portfolio-details-slider .swiper-slide video {
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .video-overlay {
+                margin-bottom: 20px;
+            }
+
+            .video-container {
+                max-width: 100%;
+            }
+
+            .video-overlay video {
+                max-height: 200px;
+            }
+
+            .portfolio-details-slider .swiper-slide img,
+            .portfolio-details-slider .swiper-slide video {
+                max-height: 250px;
+            }
+        }
+
+        /* Loading dan error states */
+        .video-loading {
+            background: #f8f9fa;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .video-error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Sisa CSS tetap sama seperti sebelumnya */
+        .swiper-button-next,
+        .swiper-button-prev {
+            color: #007bff;
+            background: rgba(255, 255, 255, 0.9);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            margin-top: -22px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .swiper-button-next:hover,
+        .swiper-button-prev:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+
+        .swiper-pagination-bullet {
+            width: 12px;
+            height: 12px;
+            background: #ccc;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .swiper-pagination-bullet-active {
+            background: #007bff;
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        .record-info {
+            margin-bottom: 30px;
+        }
+
+        .record-info .alert {
+            border-left: 4px solid #007bff;
+            border-radius: 8px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-color: #007bff;
+        }
+
+        .no-record-message {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .user-dropdown .dropdown-menu {
+            min-width: 200px;
+        }
+
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+        }
+
+        .login-btn {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 25px;
+            padding: 8px 20px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+            color: white;
+        }
+
         .portfolio-info ul li {
             margin-bottom: 10px;
         }
@@ -174,21 +403,6 @@ if ($kegiatan_id > 0) {
             color: white;
         }
 
-        .video-container {
-            position: relative;
-            width: 100%;
-            height: 400px;
-            background: #000;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .video-container video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
         .status-badge {
             padding: 8px 15px;
             border-radius: 20px;
@@ -209,7 +423,6 @@ if ($kegiatan_id > 0) {
             border: 1px solid #ffeaa7;
         }
 
-        /* Custom Accordion Styles */
         .custom-accordion {
             margin-top: 30px;
         }
@@ -266,11 +479,22 @@ if ($kegiatan_id > 0) {
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Page title enhancements untuk video */
+        .page-title.dark-background {
+            min-height: auto;
+            padding: 60px 0;
+        }
+
+        .page-title .video-overlay {
+            margin-bottom: 30px;
+        }
     </style>
 </head>
 
 <body class="portfolio-details-page">
 
+    <!-- Header tetap sama -->
     <header id="header" class="header d-flex align-items-center fixed-top">
         <div class="container-fluid container-xl position-relative d-flex align-items-center">
 
@@ -285,85 +509,354 @@ if ($kegiatan_id > 0) {
 
             <nav id="navmenu" class="navmenu">
                 <ul>
-                    <li><a href="index.php#hero">Home</a></li>
+                    <li><a href="index.php#hero" class="active">Home</a></li>
                     <li><a href="index.php#profile">Profile</a></li>
                     <li><a href="index.php#agenda_kegiatan">Agenda Kegiatan</a></li>
-                    <li><a href="index.php#portfolio">Portfolio</a></li>
-                    <li><a href="index.php#team">Team</a></li>
-                    <li><a href="index.php#contact">Contact</a></li>
+                    <li><a href="index.php#portfolio">Histori Kegiatan</a></li>
+                    <li><a href="index.php#testimonials">Testimonial</a></li>
+                    <li><a href="index.php#komentar">Komentar</a></li>
                 </ul>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
 
-            <a class="cta-btn" href="index.php#profile">Get Started</a>
+            &nbsp;&nbsp;&nbsp;
+
+            <!-- Login/User Section -->
+            <div id="loginSection">
+                <a class="cta-btn login-btn" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+            </div>
+
+            <div id="userSection" class="user-dropdown dropdown" style="display: none;">
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <div class="avatar avatar-sm me-2">
+                        <img src="assets/img/avatars/1.png" alt="Profile" class="rounded-circle avatar-sm" id="userAvatar" />
+                    </div>
+                    <span class="d-none d-md-block" id="userName">User</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="#">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="avatar avatar-sm">
+                                        <img src="assets/img/avatars/1.png" alt="Profile" class="rounded-circle avatar-sm"
+                                            id="userAvatarDropdown" />
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <span class="fw-semibold d-block" id="userNameDropdown">User</span>
+                                    <small class="text-muted" id="userRole">User</small>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#" id="dashboardLink">
+                            <i class="bi bi-speedometer2 me-2"></i>
+                            <span class="align-middle">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                            <i class="bi bi-person me-2"></i>
+                            <span class="align-middle">My Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#" onclick="logout()">
+                            <i class="bi bi-power-off me-2"></i>
+                            <span class="align-middle">Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
 
         </div>
     </header>
 
+    <!-- Modals Login dan Profile tetap sama -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="loginForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Remember me</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profileModalLabel">Edit Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="profileForm" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4 text-center mb-3">
+                                <div class="avatar mx-auto mb-3">
+                                    <img src="assets/img/avatars/1.png" alt="Profile" class="rounded-circle" id="profilePreview"
+                                        style="width: 120px; height: 120px; object-fit: cover;" />
+                                </div>
+                                <input type="file" id="photo_profile" name="photo_profile" class="form-control" accept="image/*">
+                                <small class="text-muted">Upload foto profile (JPG, PNG, maksimal 2MB)</small>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="nama" class="form-label">Nama Lengkap</label>
+                                    <input type="text" class="form-control" id="nama" name="nama" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="profile_email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="profile_email" name="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="nohp" class="form-label">No. HP</label>
+                                    <input type="text" class="form-control" id="nohp" name="nohp" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Password Saat Ini</label>
+                                    <input type="password" class="form-control" id="current_password" name="current_password">
+                                    <small class="text-muted">Kosongkan jika tidak ingin mengubah password</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">Password Baru</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Konfirmasi Password Baru</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <main class="main">
 
-        <!-- Page Title -->
-        <div class="page-title dark-background" data-aos="fade" style="background-image: url(assets/img/page-title-bg.webp);">
-            <div class="container position-relative">
-                <h1><?php echo $kegiatan ? htmlspecialchars($kegiatan['judul_kegiatan']) : 'Detail Kegiatan'; ?></h1>
-                <p><?php echo $kegiatan ? 'Detail informasi kegiatan dan dokumentasi' : 'Data kegiatan tidak ditemukan'; ?></p>
-                <nav class="breadcrumbs">
-                    <ol>
-                        <li><a href="index.php">Home</a></li>
-                        <li><a href="index.php#portfolio">Portfolio</a></li>
-                        <li class="current">Detail Kegiatan</li>
-                    </ol>
-                </nav>
-            </div>
-        </div><!-- End Page Title -->
-
         <?php if ($kegiatan): ?>
+            <!-- Page Title - Perbaikan untuk video thumbnail -->
+            <div class="page-title dark-background" data-aos="fade"
+                style="background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+                url(<?php
+                    $thumbnailPath = "assets/img/thumb/" . $kegiatan['thumbnails_kegiatan'];
+                    $isVideo = isVideoFile($kegiatan['thumbnails_kegiatan']);
+                    echo $isVideo ? 'assets/img/page-title-bg.webp' : $thumbnailPath;
+                    ?>);">
+                <div class="container position-relative">
+                    <?php if ($isVideo): ?>
+                        <!-- Video thumbnail dengan error handling yang lebih baik -->
+                        <div class="video-overlay mb-4">
+                            <?php if (fileExists($thumbnailPath)): ?>
+                                <div class="video-container">
+                                    <video controls preload="metadata" style="max-height: 300px;">
+                                        <source src="<?php echo $thumbnailPath; ?>" type="video/<?php echo pathinfo($kegiatan['thumbnails_kegiatan'], PATHINFO_EXTENSION); ?>">
+                                        <p>Browser Anda tidak mendukung video HTML5.</p>
+                                    </video>
+                                </div>
+                            <?php else: ?>
+                                <!-- Fallback jika video tidak ditemukan -->
+                                <div class="video-fallback">
+                                    <i class="bi bi-play-circle"></i>
+                                    <h5>Video Thumbnail</h5>
+                                    <p class="mb-0">File video tidak dapat dimuat</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php else: ?>
+                        <!-- Jika thumbnail adalah gambar, bisa ditampilkan di sini juga jika diinginkan -->
+                        <?php if (fileExists($thumbnailPath)): ?>
+                            <div class="video-overlay mb-4">
+                                <img src="<?php echo $thumbnailPath; ?>"
+                                    alt="<?php echo htmlspecialchars($kegiatan['judul_kegiatan']); ?>"
+                                    style="max-width: 600px; max-height: 300px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);"
+                                    onerror="this.style.display='none'">
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+
+                    <h1><?php echo htmlspecialchars($kegiatan['judul_kegiatan']); ?></h1>
+                    <p>Detail informasi kegiatan dan dokumentasi</p>
+                    <nav class="breadcrumbs">
+                        <ol>
+                            <li><a href="index.php">Home</a></li>
+                            <li><a href="index.php#portfolio">Portfolio</a></li>
+                            <li class="current">Detail Kegiatan</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div><!-- End Page Title -->
+
             <!-- Portfolio Details Section -->
             <section id="portfolio-details" class="portfolio-details section">
                 <div class="container" data-aos="fade-up" data-aos-delay="100">
                     <div class="row gy-4">
 
                         <div class="col-lg-8">
-                            <?php
-                            $thumbnailPath = "assets/img/thumb/" . $kegiatan['thumbnails_kegiatan'];
-                            $isVideo = in_array(strtolower(pathinfo($kegiatan['thumbnails_kegiatan'], PATHINFO_EXTENSION)), ['mp4', 'webm', 'ogg']);
-                            ?>
-
-                            <?php if ($isVideo): ?>
-                                <div class="video-container">
-                                    <video controls>
-                                        <source src="<?php echo $thumbnailPath; ?>" type="video/mp4">
-                                        Browser Anda tidak mendukung video.
-                                    </video>
-                                </div>
-                            <?php else: ?>
-                                <div class="portfolio-details-slider swiper init-swiper">
+                            <?php if (!empty($kegiatanRecord)): ?>
+                                <!-- Record Kegiatan Slider dengan perbaikan -->
+                                <div class="portfolio-details-slider swiper init-swiper" data-aos="fade-up" data-aos-delay="200">
                                     <script type="application/json" class="swiper-config">
                                         {
                                             "loop": true,
                                             "speed": 600,
                                             "autoplay": {
-                                                "delay": 5000
+                                                "delay": 4000,
+                                                "disableOnInteraction": false
                                             },
                                             "slidesPerView": "auto",
+                                            "centeredSlides": true,
+                                            "spaceBetween": 20,
                                             "pagination": {
                                                 "el": ".swiper-pagination",
                                                 "type": "bullets",
                                                 "clickable": true
+                                            },
+                                            "navigation": {
+                                                "nextEl": ".swiper-button-next",
+                                                "prevEl": ".swiper-button-prev"
+                                            },
+                                            "breakpoints": {
+                                                "320": {
+                                                    "slidesPerView": 1,
+                                                    "spaceBetween": 10
+                                                },
+                                                "640": {
+                                                    "slidesPerView": 1,
+                                                    "spaceBetween": 15
+                                                },
+                                                "1024": {
+                                                    "slidesPerView": 1,
+                                                    "spaceBetween": 20
+                                                }
                                             }
                                         }
                                     </script>
 
                                     <div class="swiper-wrapper align-items-center">
-                                        <div class="swiper-slide">
-                                            <img src="<?php echo $thumbnailPath; ?>" alt="<?php echo htmlspecialchars($kegiatan['judul_kegiatan']); ?>" onerror="this.src='assets/img/about-2.jpg'">
-                                        </div>
+                                        <?php foreach ($kegiatanRecord as $record): ?>
+                                            <?php
+                                            $recordPath = "assets/img/dokumentasi/" . $record['record_kegiatan'];
+                                            $isRecordVideo = isVideoFile($record['record_kegiatan']);
+                                            ?>
+                                            <div class="swiper-slide">
+                                                <?php if ($isRecordVideo): ?>
+                                                    <?php if (fileExists($recordPath)): ?>
+                                                        <div class="record-video-container">
+                                                            <video controls preload="metadata" style="width: 100%; max-height: 400px; object-fit: contain; border-radius: 10px;">
+                                                                <source src="<?php echo $recordPath; ?>" type="video/<?php echo pathinfo($record['record_kegiatan'], PATHINFO_EXTENSION); ?>">
+                                                                <p>Browser Anda tidak mendukung video.</p>
+                                                            </video>
+                                                        </div>
+                                                    <?php else: ?>
+                                                        <div class="video-error">
+                                                            <i class="bi bi-exclamation-triangle"></i>
+                                                            <p class="mb-0">Video tidak dapat dimuat</p>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    <?php if (fileExists($recordPath)): ?>
+                                                        <img src="<?php echo $recordPath; ?>"
+                                                            alt="Dokumentasi <?php echo htmlspecialchars($kegiatan['judul_kegiatan']); ?>"
+                                                            style="width: 100%; max-height: 400px; object-fit: contain; border-radius: 10px;"
+                                                            onerror="this.parentElement.innerHTML='<div class=\'video-error\'><i class=\'bi bi-image\'></i><p class=\'mb-0\'>Gambar tidak dapat dimuat</p></div>'">
+                                                    <?php else: ?>
+                                                        <div class="video-error">
+                                                            <i class="bi bi-image"></i>
+                                                            <p class="mb-0">Gambar tidak ditemukan</p>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
+
+                                    <!-- Navigation buttons -->
+                                    <div class="swiper-button-next"></div>
+                                    <div class="swiper-button-prev"></div>
+
+                                    <!-- Pagination -->
                                     <div class="swiper-pagination"></div>
+                                </div>
+
+                                <!-- Record Info -->
+                                <div class="record-info mt-3" data-aos="fade-up" data-aos-delay="300">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-camera2 me-2"></i>
+                                        <strong>Dokumentasi Kegiatan:</strong> <?php echo count($kegiatanRecord); ?> file dokumentasi tersedia
+                                        <?php
+                                        $videoCount = 0;
+                                        $imageCount = 0;
+                                        foreach ($kegiatanRecord as $record) {
+                                            if (isVideoFile($record['record_kegiatan'])) {
+                                                $videoCount++;
+                                            } else {
+                                                $imageCount++;
+                                            }
+                                        }
+                                        ?>
+                                        <?php if ($videoCount > 0 || $imageCount > 0): ?>
+                                            <br>
+                                            <small class="text-muted">
+                                                <?php if ($imageCount > 0): ?>
+                                                    <?php echo $imageCount; ?> foto
+                                                <?php endif; ?>
+                                                <?php if ($videoCount > 0 && $imageCount > 0): ?>, <?php endif; ?>
+                                            <?php if ($videoCount > 0): ?>
+                                                <?php echo $videoCount; ?> video
+                                            <?php endif; ?>
+                                            </small>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                            <?php else: ?>
+                                <!-- Jika tidak ada record, tampilkan pesan -->
+                                <div class="no-record-message text-center py-5" data-aos="fade-up" data-aos-delay="200">
+                                    <i class="bi bi-images" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
+                                    <h4 style="color: #666; margin-bottom: 15px;">Belum Ada Dokumentasi</h4>
+                                    <p class="text-muted">Dokumentasi kegiatan ini belum tersedia.</p>
                                 </div>
                             <?php endif; ?>
 
-                            <!-- Petugas Accordion Section - Moved below thumbnail -->
+                            <!-- Petugas Accordion Section -->
                             <?php if (!empty($kegiatan['petugas'])): ?>
                                 <div class="custom-accordion" data-aos="fade-up" data-aos-delay="400">
                                     <div class="accordion" id="petugasAccordion">
@@ -402,6 +895,7 @@ if ($kegiatan_id > 0) {
                             <?php endif; ?>
                         </div>
 
+                        <!-- Sidebar -->
                         <div class="col-lg-4">
                             <div class="portfolio-info" data-aos="fade-up" data-aos-delay="200">
                                 <h3>Informasi Kegiatan</h3>
@@ -430,6 +924,11 @@ if ($kegiatan_id > 0) {
                                             </a>
                                         </li>
                                     <?php endif; ?>
+                                    <?php if (!empty($kegiatanRecord)): ?>
+                                        <li><strong>Dokumentasi</strong>:
+                                            <span class="badge bg-primary"><?php echo count($kegiatanRecord); ?> file</span>
+                                        </li>
+                                    <?php endif; ?>
                                 </ul>
                             </div>
 
@@ -451,6 +950,20 @@ if ($kegiatan_id > 0) {
 
         <?php else: ?>
             <!-- No Data Section -->
+            <div class="page-title dark-background" data-aos="fade" style="background-image: url(assets/img/page-title-bg.webp);">
+                <div class="container position-relative">
+                    <h1>Detail Kegiatan</h1>
+                    <p>Data kegiatan tidak ditemukan</p>
+                    <nav class="breadcrumbs">
+                        <ol>
+                            <li><a href="index.php">Home</a></li>
+                            <li><a href="index.php#portfolio">Portfolio</a></li>
+                            <li class="current">Detail Kegiatan</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+
             <section class="section">
                 <div class="container">
                     <div class="no-data-container" data-aos="fade-up">
@@ -527,6 +1040,40 @@ if ($kegiatan_id > 0) {
 
     <!-- Main JS File -->
     <script src="assets/js/main.js"></script>
+    <script src="controller/HomeController.js"></script>
+
+    <!-- Script untuk handling video errors -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle video loading errors
+            const videos = document.querySelectorAll('video');
+            videos.forEach(video => {
+                video.addEventListener('error', function() {
+                    console.error('Video loading error:', this.src);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'video-error';
+                    errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i><p class="mb-0">Video tidak dapat dimuat</p>';
+                    this.parentNode.replaceChild(errorDiv, this);
+                });
+
+                video.addEventListener('loadstart', function() {
+                    this.style.opacity = '0.7';
+                });
+
+                video.addEventListener('canplay', function() {
+                    this.style.opacity = '1';
+                });
+            });
+
+            // Handle image loading errors
+            const images = document.querySelectorAll('img[onerror]');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    console.error('Image loading error:', this.src);
+                });
+            });
+        });
+    </script>
 
 </body>
 
