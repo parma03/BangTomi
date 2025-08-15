@@ -332,6 +332,13 @@ function getDataKegiatan($pdo)
                                             data-bs-placement="top" title="Edit Kegiatan">
                                             <i class="bx bx-edit"></i>
                                         </button>
+                                    <?php } else { ?>
+                                        <button type="button" class="btn btn-info upload-rekap-btn"
+                                            data-id="<?php echo $kegiatan['id_kegiatan']; ?>"
+                                            data-name="<?php echo htmlspecialchars($kegiatan['judul_kegiatan']); ?>"
+                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Upload Rekap Dokumentasi">
+                                            <i class="bx bx-cloud-upload"></i>
+                                        </button>
                                     <?php } ?>
                                     <button type="button" class="btn btn-danger delete-kegiatan-btn"
                                         data-id="<?php echo $kegiatan['id_kegiatan']; ?>"
@@ -1442,6 +1449,190 @@ function selesaikanKegiatan($pdo)
     exit;
 }
 
+function getExistingDokumentasi($pdo, $kegiatanId)
+{
+    try {
+        $query = "SELECT * FROM tb_record_kegiatan WHERE id_kegiatan = ?";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute([$kegiatanId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
+function uploadRekapKegiatan($pdo)
+{
+    try {
+        if (!isset($pdo)) {
+            throw new Exception('Database connection not available');
+        }
+
+        $kegiatanId = $_POST['kegiatanIdRekap'] ?? null;
+
+        if (empty($kegiatanId) || !is_numeric($kegiatanId)) {
+            throw new Exception('ID Kegiatan tidak valid');
+        }
+
+        // Cek apakah kegiatan ada dan sudah selesai
+        $checkQuery = "SELECT * FROM tb_kegiatan WHERE id_kegiatan = ? AND status_kegiatan = 'selesai'";
+        $checkStmt = $pdo->prepare($checkQuery);
+        $checkStmt->execute([$kegiatanId]);
+        $kegiatan = $checkStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$kegiatan) {
+            throw new Exception('Kegiatan tidak ditemukan atau belum selesai');
+        }
+
+        // Validasi file upload
+        if (!isset($_FILES['rekapFiles']) || $_FILES['rekapFiles']['error'][0] === UPLOAD_ERR_NO_FILE) {
+            throw new Exception('Minimal upload 1 file dokumentasi');
+        }
+
+        $uploadPath = '../../../assets/img/dokumentasi/';
+
+        // Buat folder jika belum ada
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+
+        $uploadedFiles = [];
+        $allowedTypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'image/bmp',
+            'video/mp4',
+            'video/avi',
+            'video/mov',
+            'video/wmv',
+            'video/webm'
+        ];
+        $maxSize = 50 * 1024 * 1024; // 50MB
+
+        // Start transaction
+        $pdo->beginTransaction();
+
+        try {
+            // Process multiple files
+            $files = $_FILES['rekapFiles'];
+            $fileCount = count($files['name']);
+
+            for ($i = 0; $i < $fileCount; $i++) {
+                if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                    // Validasi tipe file
+                    if (!in_array($files['type'][$i], $allowedTypes)) {
+                        throw new Exception("File {$files['name'][$i]} memiliki format yang tidak didukung");
+                    }
+
+                    // Validasi ukuran file
+                    if ($files['size'][$i] > $maxSize) {
+                        throw new Exception("File {$files['name'][$i]} terlalu besar (max 50MB)");
+                    }
+
+                    // Generate unique filename
+                    $extension = pathinfo($files['name'][$i], PATHINFO_EXTENSION);
+                    $filename = 'rekap_' . $kegiatanId . '_' . time() . '_' . $i . '.' . $extension;
+                    $fullPath = $uploadPath . $filename;
+
+                    // Upload file
+                    if (move_uploaded_file($files['tmp_name'][$i], $fullPath)) {
+                        $uploadedFiles[] = $filename;
+
+                        // Insert ke tb_record_kegiatan
+                        $insertRecordQuery = "INSERT INTO tb_record_kegiatan (id_kegiatan, record_kegiatan) VALUES (?, ?)";
+                        $insertRecordStmt = $pdo->prepare($insertRecordQuery);
+                        $insertRecordStmt->execute([$kegiatanId, $filename]);
+                    } else {
+                        throw new Exception("Gagal upload file {$files['name'][$i]}");
+                    }
+                }
+            }
+
+            if (empty($uploadedFiles)) {
+                throw new Exception('Tidak ada file yang berhasil diupload');
+            }
+
+            // Commit transaction
+            $pdo->commit();
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Berhasil mengupload ' . count($uploadedFiles) . ' file dokumentasi tambahan'
+            ]);
+        } catch (Exception $e) {
+            // Rollback transaction
+            $pdo->rollback();
+
+            // Hapus file yang sudah terupload jika ada error
+            foreach ($uploadedFiles as $file) {
+                if (file_exists($uploadPath . $file)) {
+                    unlink($uploadPath . $file);
+                }
+            }
+
+            throw $e;
+        }
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
+function deleteDokumentasi($pdo, $recordId)
+{
+    try {
+        if (!isset($pdo)) {
+            throw new Exception('Database connection not available');
+        }
+
+        if (empty($recordId) || !is_numeric($recordId)) {
+            throw new Exception('ID Record tidak valid');
+        }
+
+        // Cek record
+        $checkQuery = "SELECT * FROM tb_record_kegiatan WHERE id_foto_kegiatan = ?";
+        $checkStmt = $pdo->prepare($checkQuery);
+        $checkStmt->execute([$recordId]);
+        $record = $checkStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$record) {
+            throw new Exception('Record dokumentasi tidak ditemukan');
+        }
+
+        // Hapus file fisik
+        $filePath = '../../../assets/img/dokumentasi/' . $record['record_kegiatan'];
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        // Hapus record dari database
+        $deleteQuery = "DELETE FROM tb_record_kegiatan WHERE id_foto_kegiatan = ?";
+        $deleteStmt = $pdo->prepare($deleteQuery);
+        $result = $deleteStmt->execute([$recordId]);
+
+        if ($result) {
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Dokumentasi berhasil dihapus'
+            ]);
+        } else {
+            throw new Exception('Gagal menghapus record dari database');
+        }
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
@@ -1518,6 +1709,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             selesaikanKegiatan($pdo);
             break;
 
+        case 'upload_rekap_kegiatan':
+            checkAdminAccess();
+            uploadRekapKegiatan($pdo);
+            break;
+
+        case 'get_existing_dokumentasi':
+            checkAdminAccess();
+            $kegiatanId = $_POST['kegiatan_id'] ?? null;
+            if ($kegiatanId) {
+                $dokumentasi = getExistingDokumentasi($pdo, $kegiatanId);
+                echo json_encode(['status' => 'success', 'data' => $dokumentasi]);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'ID Kegiatan tidak ditemukan']);
+            }
+            break;
+
+        case 'delete_dokumentasi':
+            checkAdminAccess();
+            $recordId = $_POST['record_id'] ?? null;
+            if ($recordId) {
+                deleteDokumentasi($pdo, $recordId);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'ID Record tidak ditemukan']);
+            }
+            break;
 
         default:
             echo json_encode(['success' => false, 'message' => 'Request tidak valid']);
