@@ -272,12 +272,6 @@ function getDashboardStats($pdo)
         $stmt->execute();
         $stats['kegiatan_selesai'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-        // Total Petugas
-        $query = "SELECT COUNT(*) as total FROM tb_user WHERE role = 'petugas'";
-        $stmt = $pdo->prepare($query);
-        $stmt->execute();
-        $stats['total_petugas'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-
         // Kegiatan Hari Ini
         $query = "SELECT COUNT(*) as total FROM tb_kegiatan WHERE DATE(jadwal_kegiatan) = CURDATE()";
         $stmt = $pdo->prepare($query);

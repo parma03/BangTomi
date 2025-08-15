@@ -404,7 +404,6 @@ $(document).ready(function () {
           animateCounter("#totalKegiatan", stats.total_kegiatan);
           animateCounter("#kegiatanPending", stats.kegiatan_pending);
           animateCounter("#kegiatanSelesai", stats.kegiatan_selesai);
-          animateCounter("#totalPetugas", stats.total_petugas);
           animateCounter("#kegiatanHariIni", stats.kegiatan_hari_ini);
           animateCounter("#kegiatanMingguIni", stats.kegiatan_minggu_ini);
         } else {

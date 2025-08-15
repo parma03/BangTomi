@@ -144,19 +144,6 @@ checkAdminAccess();
                                     <div class="card-body">
                                         <div class="card-title d-flex align-items-start justify-content-between">
                                             <div class="avatar flex-shrink-0">
-                                                <i class="bx bx-user text-info" style="font-size: 2rem;"></i>
-                                            </div>
-                                        </div>
-                                        <span class="fw-semibold d-block mb-1">Total Petugas</span>
-                                        <h3 class="card-title mb-2" id="totalPetugas">-</h3>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-2 col-md-4 col-6 mb-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="card-title d-flex align-items-start justify-content-between">
-                                            <div class="avatar flex-shrink-0">
                                                 <i class="bx bx-calendar-today text-danger"
                                                     style="font-size: 2rem;"></i>
                                             </div>
