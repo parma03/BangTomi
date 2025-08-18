@@ -8,10 +8,10 @@ $username = 'root';
 $password = '';
 
 // Telegram Bot Token
-$telegramBotToken = "8483301260:AAFNldm582v3C0nteKirm-gnE8p1_xSzhS4";
+$telegramBotToken = "7831626210:AAEGRBDhQmD12yVA9dSqn5r4kY_2neAAwkg";
 
 // Telegram Group Chat ID (dari JSON response yang Anda berikan)
-$telegramGroupChatId = "-4929727465";
+$telegramGroupChatId = "-4897067780";
 
 // PDO Connection
 try {

@@ -813,7 +813,7 @@ function sendManualNotification($pdo)
         $customMessage = "📢 *NOTIFIKASI MANUAL KEGIATAN*\n\n" .
             "📋 *Kegiatan:* {$penugasan['judul_kegiatan']}\n" .
             "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($penugasan['jadwal_kegiatan'])) . "\n" .
-            "📝 *Deskripsi:* " . substr($penugasan['deksripsi_kegiatan'], 0, 150) . "...\n\n" .
+            "📝 *Deskripsi:* {$penugasan['deksripsi_kegiatan']}" .
             "⚠️ *Pengingat khusus untuk:* {$penugasan['nama_petugas']}\n\n" .
             "💼 Mohon mempersiapkan diri dengan baik dan koordinasi dengan tim!\n\n" .
             "🔗 *Link Kehadiran:* {$penugasan['kehadiran_kegiatan']}";

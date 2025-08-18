@@ -682,7 +682,7 @@ function addPenugasanWithNotification($pdo)
                     $customMessage = "🔔 *PENUGASAN BARU*\n\n" .
                         "📋 *Kegiatan:* {$kegiatan['judul_kegiatan']}\n" .
                         "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan'])) . "\n" .
-                        "📝 *Deskripsi:* " . substr($kegiatan['deksripsi_kegiatan'], 0, 150) . "...\n\n" .
+                        "📝 *Deskripsi:* {$kegiatan['deksripsi_kegiatan']}\n" .
                         "👥 *Petugas yang Baru Ditugaskan:*\n";
 
                     foreach ($petugasNames as $index => $nama) {
@@ -810,7 +810,7 @@ function sendManualNotification($pdo)
         $customMessage = "📢 *NOTIFIKASI MANUAL KEGIATAN*\n\n" .
             "📋 *Kegiatan:* {$penugasan['judul_kegiatan']}\n" .
             "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($penugasan['jadwal_kegiatan'])) . "\n" .
-            "📝 *Deskripsi:* " . substr($penugasan['deksripsi_kegiatan'], 0, 150) . "...\n\n" .
+            "📝 *Deskripsi:* {$penugasan['deksripsi_kegiatan']}" .
             "⚠️ *Pengingat khusus untuk:* {$penugasan['nama_petugas']}\n\n" .
             "💼 Mohon mempersiapkan diri dengan baik dan koordinasi dengan tim!\n\n" .
             "🔗 *Link Kehadiran:* {$penugasan['kehadiran_kegiatan']}";
