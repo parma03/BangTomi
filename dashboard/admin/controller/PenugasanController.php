@@ -255,11 +255,12 @@ function getDataPenugasan($pdo)
             throw new Exception('Database connection not available');
         }
 
-        // Get all penugasan data with kegiatan and petugas information
+        // Get all penugasan data with kegiatan and petugas information plus category
         $query = "SELECT 
                     p.id_penugasan,
                     p.id_kegiatan,
                     p.id_pegawai,
+                    p.category,
                     k.judul_kegiatan,
                     k.jadwal_kegiatan,
                     k.status_kegiatan,
@@ -284,12 +285,13 @@ function getDataPenugasan($pdo)
                 <thead class="table-dark">
                     <tr>
                         <th scope="col" style="width: 5%;">#</th>
-                        <th scope="col" style="width: 25%;">Kegiatan</th>
-                        <th scope="col" style="width: 20%;">Jadwal</th>
-                        <th scope="col" style="width: 20%;">Petugas</th>
+                        <th scope="col" style="width: 20%;">Kegiatan</th>
+                        <th scope="col" style="width: 15%;">Jadwal</th>
+                        <th scope="col" style="width: 15%;">Petugas</th>
+                        <th scope="col" style="width: 10%;">Kategori</th>
                         <th scope="col" style="width: 15%;">Kontak</th>
                         <th scope="col" style="width: 10%;">Status</th>
-                        <th scope="col" style="width: 10%;">Aksi</th> <!-- Lebar diubah untuk menampung 2 tombol -->
+                        <th scope="col" style="width: 10%;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -324,6 +326,13 @@ function getDataPenugasan($pdo)
                                 </div>
                             </td>
                             <td>
+                                <?php if ($penugasan['category'] === "MC") { ?>
+                                    <span class="badge bg-primary">MC</span>
+                                <?php } else { ?>
+                                    <span class="badge bg-secondary">Protokol</span>
+                                <?php } ?>
+                            </td>
+                            <td>
                                 <small class="text-muted">
                                     <?php echo htmlspecialchars($penugasan['email_petugas']); ?><br>
                                     <?php echo htmlspecialchars($penugasan['nohp_petugas']); ?>
@@ -342,7 +351,6 @@ function getDataPenugasan($pdo)
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <!-- Tombol Kirim Notifikasi -->
                                     <button type="button" class="btn btn-primary btn-sm send-notification-btn"
                                         data-id="<?php echo $penugasan['id_penugasan']; ?>"
                                         data-name="<?php echo htmlspecialchars($penugasan['judul_kegiatan']); ?>"
@@ -350,8 +358,6 @@ function getDataPenugasan($pdo)
                                         data-bs-toggle="tooltip" data-bs-placement="top" title="Kirim Notifikasi">
                                         <i class="bx bx-bell"></i>
                                     </button>
-
-                                    <!-- Tombol Hapus -->
                                     <button type="button" class="btn btn-danger btn-sm delete-penugasan-btn"
                                         data-id="<?php echo $penugasan['id_penugasan']; ?>"
                                         data-name="<?php echo htmlspecialchars($penugasan['judul_kegiatan']); ?>"
@@ -485,6 +491,7 @@ function checkPetugasConflict($pdo)
 
         $kegiatanId = $_POST['kegiatan_id'] ?? '';
         $petugasIds = $_POST['petugas_ids'] ?? [];
+        $category = $_POST['category'] ?? 'MC'; // Default MC
 
         if (empty($kegiatanId) || empty($petugasIds)) {
             echo json_encode([
@@ -515,14 +522,15 @@ function checkPetugasConflict($pdo)
 
         $selectedJadwal = $selectedKegiatan['jadwal_kegiatan'];
 
-        // Cek konflik untuk setiap petugas
+        // Cek konflik untuk setiap petugas (periksa semua kategori di waktu yang sama)
         $conflictPetugas = [];
 
         foreach ($petugasIds as $petugasId) {
             $query = "SELECT DISTINCT
                         u.nama as nama_petugas,
                         k.judul_kegiatan,
-                        k.jadwal_kegiatan
+                        k.jadwal_kegiatan,
+                        p.category
                       FROM tb_penugasan p
                       JOIN tb_kegiatan k ON p.id_kegiatan = k.id_kegiatan
                       JOIN tb_user u ON p.id_pegawai = u.id
@@ -537,14 +545,15 @@ function checkPetugasConflict($pdo)
             if (!empty($conflicts)) {
                 $conflictPetugas[] = [
                     'nama_petugas' => $conflicts[0]['nama_petugas'],
-                    'kegiatan_konflik' => $conflicts[0]['judul_kegiatan']
+                    'kegiatan_konflik' => $conflicts[0]['judul_kegiatan'],
+                    'category_konflik' => $conflicts[0]['category']
                 ];
             }
         }
 
         if (!empty($conflictPetugas)) {
             $conflictNames = array_map(function ($item) {
-                return $item['nama_petugas'] . ' (sudah ditugaskan di: ' . $item['kegiatan_konflik'] . ')';
+                return $item['nama_petugas'] . ' (sudah ditugaskan di: ' . $item['kegiatan_konflik'] . ' sebagai ' . $item['category_konflik'] . ')';
             }, $conflictPetugas);
 
             $message = 'Konflik jadwal ditemukan: ' . implode(', ', $conflictNames);
@@ -577,16 +586,17 @@ function addPenugasanWithNotification($pdo)
         }
 
         $kegiatanId = $_POST['id_kegiatan'] ?? '';
-        $petugasIds = $_POST['id_pegawai'] ?? [];
-        $sendNotification = $_POST['send_notification'] ?? 'yes'; // Default kirim notifikasi
+        $petugasMC = $_POST['id_pegawai_mc'] ?? [];
+        $petugasProtokol = $_POST['id_pegawai_protokol'] ?? [];
+        $sendNotification = $_POST['send_notification'] ?? 'yes';
 
-        // Validasi input (sama seperti addPenugasan yang ada)
+        // Validasi input
         if (empty($kegiatanId)) {
             throw new Exception('Kegiatan harus dipilih');
         }
 
-        if (empty($petugasIds) || !is_array($petugasIds)) {
-            throw new Exception('Minimal satu petugas harus dipilih');
+        if (empty($petugasMC) && empty($petugasProtokol)) {
+            throw new Exception('Minimal satu petugas harus dipilih (MC atau Protokol)');
         }
 
         // Validasi kegiatan exists
@@ -599,11 +609,14 @@ function addPenugasanWithNotification($pdo)
             throw new Exception('Kegiatan tidak ditemukan');
         }
 
-        // Cek konflik jadwal (sama seperti addPenugasan yang ada)
+        // Gabungkan semua petugas untuk validasi
+        $allPetugasIds = array_merge($petugasMC, $petugasProtokol);
+
+        // Cek konflik jadwal dan validasi petugas
         $selectedJadwal = $kegiatan['jadwal_kegiatan'];
         $conflictPetugas = [];
 
-        foreach ($petugasIds as $petugasId) {
+        foreach ($allPetugasIds as $petugasId) {
             // Validasi petugas exists
             $query = "SELECT nama FROM tb_user WHERE id = ? AND role = 'petugas'";
             $stmt = $pdo->prepare($query);
@@ -615,7 +628,7 @@ function addPenugasanWithNotification($pdo)
             }
 
             // Cek konflik jadwal
-            $query = "SELECT DISTINCT u.nama as nama_petugas, k.judul_kegiatan
+            $query = "SELECT DISTINCT u.nama as nama_petugas, k.judul_kegiatan, p.category
                       FROM tb_penugasan p
                       JOIN tb_kegiatan k ON p.id_kegiatan = k.id_kegiatan
                       JOIN tb_user u ON p.id_pegawai = u.id
@@ -626,7 +639,7 @@ function addPenugasanWithNotification($pdo)
             $conflicts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (!empty($conflicts)) {
-                $conflictPetugas[] = $petugas['nama'] . ' (sudah ditugaskan di: ' . $conflicts[0]['judul_kegiatan'] . ')';
+                $conflictPetugas[] = $petugas['nama'] . ' (sudah ditugaskan di: ' . $conflicts[0]['judul_kegiatan'] . ' sebagai ' . $conflicts[0]['category'] . ')';
             }
 
             // Cek apakah petugas sudah ditugaskan di kegiatan yang sama
@@ -648,30 +661,39 @@ function addPenugasanWithNotification($pdo)
         // Mulai transaksi
         $pdo->beginTransaction();
 
-        // Insert penugasan untuk setiap petugas
-        $insertQuery = "INSERT INTO tb_penugasan (id_kegiatan, id_pegawai) VALUES (?, ?)";
+        // Insert penugasan untuk MC
+        $insertQuery = "INSERT INTO tb_penugasan (id_kegiatan, id_pegawai, category) VALUES (?, ?, 'MC')";
         $insertStmt = $pdo->prepare($insertQuery);
 
         $successCount = 0;
-        foreach ($petugasIds as $petugasId) {
+        foreach ($petugasMC as $petugasId) {
             if ($insertStmt->execute([$kegiatanId, $petugasId])) {
                 $successCount++;
             }
         }
 
-        if ($successCount === count($petugasIds)) {
+        // Insert penugasan untuk Protokol
+        $insertQuery = "INSERT INTO tb_penugasan (id_kegiatan, id_pegawai, category) VALUES (?, ?, 'Protokol')";
+        $insertStmt = $pdo->prepare($insertQuery);
+
+        foreach ($petugasProtokol as $petugasId) {
+            if ($insertStmt->execute([$kegiatanId, $petugasId])) {
+                $successCount++;
+            }
+        }
+
+        if ($successCount === count($allPetugasIds)) {
             $pdo->commit();
 
             // Kirim notifikasi jika diminta
             $notificationMessage = '';
             if ($sendNotification === 'yes') {
                 try {
-                    // Initialize Telegram Bot menggunakan koneksi dari koneksi.php
                     $telegramController = new NotificationTelegramController();
 
                     // Ambil daftar nama petugas untuk ditampilkan dalam notifikasi
                     $petugasNames = [];
-                    foreach ($petugasIds as $petugasId) {
+                    foreach ($allPetugasIds as $petugasId) {
                         $query = "SELECT nama FROM tb_user WHERE id = ?";
                         $stmt = $pdo->prepare($query);
                         $stmt->execute([$petugasId]);
@@ -685,14 +707,45 @@ function addPenugasanWithNotification($pdo)
                     $customMessage = "🔔 *PENUGASAN BARU*\n\n" .
                         "📋 *Kegiatan:* {$kegiatan['judul_kegiatan']}\n" .
                         "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan'])) . "\n" .
-                        "📝 *Deskripsi:* " . substr($kegiatan['deksripsi_kegiatan'], 0, 150) . "...\n\n" .
-                        "👥 *Petugas yang Baru Ditugaskan:*\n";
+                        "📝 *Deskripsi:* {$kegiatan['deksripsi_kegiatan']}\n";
 
-                    foreach ($petugasNames as $index => $nama) {
-                        $customMessage .= ($index + 1) . ". {$nama}\n";
+                    if (!empty($petugasMC)) {
+                        $customMessage .= "🎤 *Petugas MC:*\n";
+                        $mcNames = [];
+                        foreach ($petugasMC as $petugasId) {
+                            $query = "SELECT nama FROM tb_user WHERE id = ?";
+                            $stmt = $pdo->prepare($query);
+                            $stmt->execute([$petugasId]);
+                            $petugasData = $stmt->fetch(PDO::FETCH_ASSOC);
+                            if ($petugasData) {
+                                $mcNames[] = $petugasData['nama'];
+                            }
+                        }
+                        foreach ($mcNames as $index => $nama) {
+                            $customMessage .= ($index + 1) . ". {$nama}\n";
+                        }
+                        $customMessage .= "\n";
                     }
 
-                    $customMessage .= "\n💼 Mohon bersiap dan catat jadwal ini dengan baik!\n\n" .
+                    if (!empty($petugasProtokol)) {
+                        $customMessage .= "📋 *Petugas Protokol:*\n";
+                        $protokolNames = [];
+                        foreach ($petugasProtokol as $petugasId) {
+                            $query = "SELECT nama FROM tb_user WHERE id = ?";
+                            $stmt = $pdo->prepare($query);
+                            $stmt->execute([$petugasId]);
+                            $petugasData = $stmt->fetch(PDO::FETCH_ASSOC);
+                            if ($petugasData) {
+                                $protokolNames[] = $petugasData['nama'];
+                            }
+                        }
+                        foreach ($protokolNames as $index => $nama) {
+                            $customMessage .= ($index + 1) . ". {$nama}\n";
+                        }
+                        $customMessage .= "\n";
+                    }
+
+                    $customMessage .= "💼 Mohon bersiap dan catat jadwal ini dengan baik!\n\n" .
                         "🔗 *Link Kehadiran:* {$kegiatan['kehadiran_kegiatan']}";
 
                     $notifResult = $telegramController->sendManualNotification($kegiatanId, $customMessage);
@@ -707,9 +760,12 @@ function addPenugasanWithNotification($pdo)
                 }
             }
 
+            $mcCount = count($petugasMC);
+            $protokolCount = count($petugasProtokol);
+
             echo json_encode([
                 'status' => 'success',
-                'message' => "Berhasil menambahkan {$successCount} penugasan petugas ke kegiatan \"{$kegiatan['judul_kegiatan']}\".{$notificationMessage}"
+                'message' => "Berhasil menambahkan {$mcCount} petugas MC dan {$protokolCount} petugas Protokol ke kegiatan \"{$kegiatan['judul_kegiatan']}\".{$notificationMessage}"
             ]);
         } else {
             $pdo->rollBack();

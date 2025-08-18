@@ -369,12 +369,7 @@ $(document).ready(function () {
   loadPetugasOptions();
 
   // Initialize Select2
-  $("#id_pegawai").select2({
-    theme: "bootstrap-5",
-    placeholder: "Pilih Petugas",
-    allowClear: true,
-    dropdownParent: $("#penugasanFormModal"),
-  });
+  initializeSelect2();
 
   $(document).on("click", ".send-notification-btn", function () {
     const penugasanId = $(this).data("id");
@@ -443,16 +438,53 @@ $(document).ready(function () {
   });
 
   // Petugas change handler
-  $("#id_pegawai").on("change", function () {
+  $("#id_pegawai_mc, #id_pegawai_protokol").on("change", function () {
     const kegiatanId = $("#id_kegiatan").val();
-    const selectedPetugas = $(this).val();
+    const selectedPetugasMC = $("#id_pegawai_mc").val() || [];
+    const selectedPetugasProtokol = $("#id_pegawai_protokol").val() || [];
+    const allSelectedPetugas = [
+      ...selectedPetugasMC,
+      ...selectedPetugasProtokol,
+    ];
 
-    if (kegiatanId && selectedPetugas && selectedPetugas.length > 0) {
-      checkPetugasConflict(kegiatanId, selectedPetugas);
+    if (kegiatanId && allSelectedPetugas.length > 0) {
+      checkPetugasConflict(kegiatanId, allSelectedPetugas);
     } else {
       $("#conflictWarning").addClass("d-none");
     }
   });
+
+  function initializeSelect2() {
+    console.log("Initializing Select2...");
+
+    // Destroy existing Select2 jika ada
+    if ($("#id_pegawai_mc").hasClass("select2-hidden-accessible")) {
+      $("#id_pegawai_mc").select2("destroy");
+    }
+    if ($("#id_pegawai_protokol").hasClass("select2-hidden-accessible")) {
+      $("#id_pegawai_protokol").select2("destroy");
+    }
+
+    // Initialize Select2 untuk MC
+    $("#id_pegawai_mc").select2({
+      theme: "bootstrap-5",
+      placeholder: "Pilih Petugas MC",
+      allowClear: true,
+      dropdownParent: $("#penugasanFormModal"),
+      width: "100%",
+    });
+
+    // Initialize Select2 untuk Protokol
+    $("#id_pegawai_protokol").select2({
+      theme: "bootstrap-5",
+      placeholder: "Pilih Petugas Protokol",
+      allowClear: true,
+      dropdownParent: $("#penugasanFormModal"),
+      width: "100%",
+    });
+
+    console.log("Select2 initialized successfully");
+  }
 
   // Functions
   function loadPenugasanData() {
@@ -548,6 +580,8 @@ $(document).ready(function () {
   }
 
   function loadPetugasOptions() {
+    console.log("Loading petugas options...");
+
     $.ajax({
       type: "POST",
       url: "controller/PenugasanController.php",
@@ -559,16 +593,32 @@ $(document).ready(function () {
         console.log("Get Petugas Options response:", response);
 
         if (response.status === "success") {
-          const select = $("#id_pegawai");
-          select.empty();
+          // Kosongkan dropdown terlebih dahulu
+          const selectMC = $("#id_pegawai_mc");
+          const selectProtokol = $("#id_pegawai_protokol");
 
+          selectMC.empty();
+          selectProtokol.empty();
+
+          // Tambahkan opsi petugas ke kedua dropdown
           response.data.forEach(function (petugas) {
-            select.append(
-              `<option value="${petugas.id}">${petugas.nama}</option>`
-            );
+            const option = `<option value="${petugas.id}">${petugas.nama}</option>`;
+            selectMC.append(option);
+            selectProtokol.append(option);
           });
+
+          console.log(
+            "Petugas options loaded successfully:",
+            response.data.length,
+            "petugas"
+          );
+
+          // Trigger change untuk memperbarui Select2
+          selectMC.trigger("change");
+          selectProtokol.trigger("change");
         } else {
           console.error("Error loading petugas options:", response.message);
+          showAlert("Gagal memuat data petugas: " + response.message, "danger");
         }
       },
       error: function (xhr, status, error) {
@@ -578,6 +628,8 @@ $(document).ready(function () {
           status,
           error
         );
+        console.log("Response text:", xhr.responseText);
+        showAlert("Terjadi kesalahan saat memuat data petugas", "danger");
       },
     });
   }
@@ -590,7 +642,8 @@ $(document).ready(function () {
 
     // Reset form
     form[0].reset();
-    $("#id_pegawai").val(null).trigger("change");
+    $("#id_pegawai_mc").val(null).trigger("change");
+    $("#id_pegawai_protokol").val(null).trigger("change");
 
     // Clear validation classes
     form.find(".is-invalid").removeClass("is-invalid");
@@ -733,7 +786,8 @@ $(document).ready(function () {
     const form = $("#penugasanForm");
     const formData = new FormData(form[0]);
     const kegiatanId = $("#id_kegiatan").val();
-    const petugasIds = $("#id_pegawai").val();
+    const petugasMC = $("#id_pegawai_mc").val() || [];
+    const petugasProtokol = $("#id_pegawai_protokol").val() || [];
     const submitBtn = form.find('button[type="submit"]');
 
     // Clear previous validation
@@ -749,19 +803,20 @@ $(document).ready(function () {
       firstInvalidField = $("#id_kegiatan");
     }
 
-    if (!petugasIds || petugasIds.length === 0) {
-      $("#id_pegawai").addClass("is-invalid");
+    if (petugasMC.length === 0 && petugasProtokol.length === 0) {
+      $("#id_pegawai_mc").addClass("is-invalid");
+      $("#id_pegawai_protokol").addClass("is-invalid");
       isValid = false;
       if (!firstInvalidField) {
-        firstInvalidField = $("#id_pegawai");
+        firstInvalidField = $("#id_pegawai_mc");
       }
+      showAlert("Minimal pilih satu petugas (MC atau Protokol)!", "warning");
     }
 
     if (!isValid) {
       if (firstInvalidField) {
         firstInvalidField.focus();
       }
-      showAlert("Mohon lengkapi semua field yang diperlukan!", "warning");
       return;
     }
 
@@ -770,11 +825,26 @@ $(document).ready(function () {
       .prop("disabled", true)
       .html('<i class="fas fa-spinner fa-spin me-1"></i>Menyimpan...');
 
+    // Tambahkan data kategori ke formData
+    formData.delete("id_pegawai_mc[]"); // Hapus yang lama jika ada
+    formData.delete("id_pegawai_protokol[]"); // Hapus yang lama jika ada
+
+    // Tambahkan petugas MC
+    petugasMC.forEach(function (id) {
+      formData.append("id_pegawai_mc[]", id);
+    });
+
+    // Tambahkan petugas Protokol
+    petugasProtokol.forEach(function (id) {
+      formData.append("id_pegawai_protokol[]", id);
+    });
+
     formData.append("request", "add_penugasan");
 
     console.log("Saving penugasan with data:", {
       kegiatan_id: kegiatanId,
-      petugas_ids: petugasIds,
+      petugas_mc: petugasMC,
+      petugas_protokol: petugasProtokol,
     });
 
     // Show loading

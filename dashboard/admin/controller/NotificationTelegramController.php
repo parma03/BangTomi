@@ -144,7 +144,7 @@ class NotificationTelegramController
     private function createGroupNotificationMessage($kegiatan, $petugasList, $notificationType, $daysDiff)
     {
         $judulKegiatan = $kegiatan['judul_kegiatan'];
-        $deskripsiKegiatan = substr($kegiatan['deksripsi_kegiatan'] ?? '', 0, 150) . '...';
+        $deskripsiKegiatan = $kegiatan['deksripsi_kegiatan'];
         $jadwalKegiatan = date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan']));
         $linkKehadiran = $kegiatan['kehadiran_kegiatan'] ?? 'Belum tersedia';
 
@@ -394,7 +394,7 @@ class NotificationTelegramController
     private function createManualGroupNotificationMessage($kegiatan, $petugasList)
     {
         $judulKegiatan = $kegiatan['judul_kegiatan'];
-        $deskripsiKegiatan = substr($kegiatan['deksripsi_kegiatan'] ?? '', 0, 150) . '...';
+        $deskripsiKegiatan = $kegiatan['deksripsi_kegiatan'];
         $jadwalKegiatan = date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan']));
         $linkKehadiran = $kegiatan['kehadiran_kegiatan'] ?? 'Belum tersedia';
 

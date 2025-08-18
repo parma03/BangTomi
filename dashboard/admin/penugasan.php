@@ -291,9 +291,10 @@ checkAdminAccess();
                     </div>
 
                     <!-- Modal Form Penugasan -->
+                    <!-- Ganti modal form penugasan yang lama dengan yang baru ini -->
                     <div class="modal fade" id="penugasanFormModal" tabindex="-1"
                         aria-labelledby="penugasanFormModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
+                        <div class="modal-dialog modal-xl">
                             <div class="modal-content border-0 shadow-lg">
                                 <div class="modal-header bg-gradient text-white"
                                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -313,9 +314,10 @@ checkAdminAccess();
                                             <span id="alertMessage"></span>
                                         </div>
 
+                                        <!-- Pilihan Kegiatan -->
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <div class="mb-3">
+                                                <div class="mb-4">
                                                     <label for="id_kegiatan" class="form-label fw-semibold">
                                                         <i class="fas fa-calendar-alt text-primary me-1"></i>Pilih Kegiatan
                                                         <span class="text-danger">*</span>
@@ -330,26 +332,75 @@ checkAdminAccess();
                                             </div>
                                         </div>
 
-                                        <div class="mb-3">
-                                            <label for="id_pegawai" class="form-label fw-semibold">
-                                                <i class="fas fa-users text-success me-1"></i>Pilih Petugas
-                                                <span class="text-danger">*</span>
-                                            </label>
-                                            <select class="form-select" id="id_pegawai" name="id_pegawai[]" multiple required>
-                                                <option value="">Pilih Petugas</option>
-                                            </select>
-                                            <div class="invalid-feedback">
-                                                Minimal satu petugas harus dipilih
+                                        <!-- Info jadwal kegiatan -->
+                                        <div id="jadwalInfo" class="alert alert-info d-none mb-4" role="alert">
+                                            <i class="fas fa-clock me-2"></i>
+                                            <strong>Jadwal Kegiatan:</strong>
+                                            <span id="jadwalText"></span>
+                                        </div>
+
+                                        <!-- Peringatan konflik jadwal -->
+                                        <div id="conflictWarning" class="alert alert-warning d-none mb-4" role="alert">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Peringatan:</strong>
+                                            <span id="conflictText"></span>
+                                        </div>
+
+                                        <!-- Form untuk 2 kategori -->
+                                        <div class="row">
+                                            <!-- Petugas MC -->
+                                            <div class="col-md-6">
+                                                <div class="card border-primary h-100">
+                                                    <div class="card-header bg-primary text-white">
+                                                        <h6 class="card-title mb-0">
+                                                            <i class="fas fa-microphone me-2"></i>Petugas MC
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="mb-3">
+                                                            <label for="id_pegawai_mc" class="form-label fw-semibold">
+                                                                <i class="fas fa-users text-primary me-1"></i>Pilih Petugas MC
+                                                            </label>
+                                                            <select class="form-select" id="id_pegawai_mc" name="id_pegawai_mc[]" multiple>
+                                                                <option value="">Pilih Petugas MC</option>
+                                                            </select>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-info-circle me-1"></i>Master of Ceremony - mengatur jalannya acara
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <small class="text-muted">
-                                                <i class="fas fa-info-circle me-1"></i>Anda dapat memilih beberapa petugas untuk satu kegiatan
-                                            </small>
+
+                                            <!-- Petugas Protokol -->
+                                            <div class="col-md-6">
+                                                <div class="card border-secondary h-100">
+                                                    <div class="card-header bg-secondary text-white">
+                                                        <h6 class="card-title mb-0">
+                                                            <i class="fas fa-clipboard-list me-2"></i>Petugas Protokol
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="mb-3">
+                                                            <label for="id_pegawai_protokol" class="form-label fw-semibold">
+                                                                <i class="fas fa-users text-secondary me-1"></i>Pilih Petugas Protokol
+                                                            </label>
+                                                            <select class="form-select" id="id_pegawai_protokol" name="id_pegawai_protokol[]" multiple>
+                                                                <option value="">Pilih Petugas Protokol</option>
+                                                            </select>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-info-circle me-1"></i>Mengatur tata cara dan prosedur acara
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <!-- Opsi Notifikasi Otomatis -->
-                                        <div class="mb-4">
-                                            <div class="card border-primary">
-                                                <div class="card-header bg-primary text-white">
+                                        <div class="mb-4 mt-4">
+                                            <div class="card border-success">
+                                                <div class="card-header bg-success text-white">
                                                     <h6 class="card-title mb-0">
                                                         <i class="fas fa-bell me-2"></i>Pengaturan Notifikasi
                                                     </h6>
@@ -358,7 +409,7 @@ checkAdminAccess();
                                                     <div class="form-check form-switch">
                                                         <input class="form-check-input" type="checkbox" id="send_notification" name="send_notification" value="yes" checked>
                                                         <label class="form-check-label fw-semibold" for="send_notification">
-                                                            <i class="fas fa-paper-plane text-primary me-1"></i>Kirim notifikasi otomatis
+                                                            <i class="fas fa-paper-plane text-success me-1"></i>Kirim notifikasi otomatis
                                                         </label>
                                                         <div class="form-text">
                                                             <i class="fas fa-info-circle me-1"></i>
@@ -369,28 +420,15 @@ checkAdminAccess();
                                             </div>
                                         </div>
 
-                                        <!-- Info jadwal kegiatan -->
-                                        <div id="jadwalInfo" class="alert alert-info d-none" role="alert">
-                                            <i class="fas fa-clock me-2"></i>
-                                            <strong>Jadwal Kegiatan:</strong>
-                                            <span id="jadwalText"></span>
-                                        </div>
-
-                                        <!-- Peringatan konflik jadwal -->
-                                        <div id="conflictWarning" class="alert alert-warning d-none" role="alert">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                            <strong>Peringatan:</strong>
-                                            <span id="conflictText"></span>
-                                        </div>
-
                                         <!-- Info Box -->
                                         <div class="alert alert-info border-0 rounded-3" role="alert">
                                             <i class="fas fa-info-circle me-2"></i>
                                             <strong>Informasi:</strong>
                                             <ul class="mb-0 mt-2">
-                                                <li>Field yang bertanda <span class="text-danger">*</span> wajib diisi</li>
+                                                <li>Field Kegiatan yang bertanda <span class="text-danger">*</span> wajib diisi</li>
+                                                <li>Minimal pilih satu petugas (MC atau Protokol atau keduanya)</li>
                                                 <li>Petugas tidak dapat ditugaskan ke kegiatan yang jadwalnya bersamaan</li>
-                                                <li>Anda dapat memilih beberapa petugas sekaligus untuk satu kegiatan</li>
+                                                <li>Anda dapat memilih beberapa petugas untuk setiap kategori</li>
                                                 <li>Notifikasi akan dikirim otomatis jika opsi diaktifkan</li>
                                             </ul>
                                         </div>
