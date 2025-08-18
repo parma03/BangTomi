@@ -257,20 +257,21 @@ function getDataPenugasan($pdo)
 
         // Get all penugasan data with kegiatan and petugas information plus category
         $query = "SELECT 
-                    p.id_penugasan,
-                    p.id_kegiatan,
-                    p.id_pegawai,
-                    p.category,
-                    k.judul_kegiatan,
-                    k.jadwal_kegiatan,
-                    k.status_kegiatan,
-                    u.nama as nama_petugas,
-                    u.email as email_petugas,
-                    u.nohp as nohp_petugas
-                  FROM tb_penugasan p
-                  LEFT JOIN tb_kegiatan k ON p.id_kegiatan = k.id_kegiatan
-                  LEFT JOIN tb_user u ON p.id_pegawai = u.id
-                  ORDER BY k.jadwal_kegiatan DESC, u.nama ASC";
+            p.id_penugasan,
+            p.id_kegiatan,
+            p.id_pegawai,
+            p.category,
+            p.channel_ht,
+            k.judul_kegiatan,
+            k.jadwal_kegiatan,
+            k.status_kegiatan,
+            u.nama as nama_petugas,
+            u.email as email_petugas,
+            u.nohp as nohp_petugas
+          FROM tb_penugasan p
+          LEFT JOIN tb_kegiatan k ON p.id_kegiatan = k.id_kegiatan
+          LEFT JOIN tb_user u ON p.id_pegawai = u.id
+          ORDER BY k.jadwal_kegiatan DESC, u.nama ASC";
 
         $stmt = $pdo->prepare($query);
         $stmt->execute();
@@ -289,6 +290,7 @@ function getDataPenugasan($pdo)
                         <th scope="col" style="width: 15%;">Jadwal</th>
                         <th scope="col" style="width: 15%;">Petugas</th>
                         <th scope="col" style="width: 10%;">Kategori</th>
+                        <th scope="col" style="width: 8%;">Channel HT</th>
                         <th scope="col" style="width: 15%;">Kontak</th>
                         <th scope="col" style="width: 10%;">Status</th>
                         <th scope="col" style="width: 10%;">Aksi</th>
@@ -331,6 +333,11 @@ function getDataPenugasan($pdo)
                                 <?php } else { ?>
                                     <span class="badge bg-secondary">Protokol</span>
                                 <?php } ?>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">
+                                    <?php echo !empty($penugasan['channel_ht']) ? htmlspecialchars($penugasan['channel_ht']) : '-'; ?>
+                                </span>
                             </td>
                             <td>
                                 <small class="text-muted">
@@ -589,6 +596,7 @@ function addPenugasanWithNotification($pdo)
         $petugasMC = $_POST['id_pegawai_mc'] ?? [];
         $petugasProtokol = $_POST['id_pegawai_protokol'] ?? [];
         $sendNotification = $_POST['send_notification'] ?? 'yes';
+        $channelHT = $_POST['channel_ht'] ?? '';
 
         // Validasi input
         if (empty($kegiatanId)) {
@@ -662,22 +670,22 @@ function addPenugasanWithNotification($pdo)
         $pdo->beginTransaction();
 
         // Insert penugasan untuk MC
-        $insertQuery = "INSERT INTO tb_penugasan (id_kegiatan, id_pegawai, category) VALUES (?, ?, 'MC')";
+        $insertQuery = "INSERT INTO tb_penugasan (id_kegiatan, id_pegawai, category, channel_ht) VALUES (?, ?, 'MC', ?)";
         $insertStmt = $pdo->prepare($insertQuery);
 
         $successCount = 0;
         foreach ($petugasMC as $petugasId) {
-            if ($insertStmt->execute([$kegiatanId, $petugasId])) {
+            if ($insertStmt->execute([$kegiatanId, $petugasId, $channelHT])) {
                 $successCount++;
             }
         }
 
         // Insert penugasan untuk Protokol
-        $insertQuery = "INSERT INTO tb_penugasan (id_kegiatan, id_pegawai, category) VALUES (?, ?, 'Protokol')";
+        $insertQuery = "INSERT INTO tb_penugasan (id_kegiatan, id_pegawai, category, channel_ht) VALUES (?, ?, 'Protokol', ?)";
         $insertStmt = $pdo->prepare($insertQuery);
 
         foreach ($petugasProtokol as $petugasId) {
-            if ($insertStmt->execute([$kegiatanId, $petugasId])) {
+            if ($insertStmt->execute([$kegiatanId, $petugasId, $channelHT])) {
                 $successCount++;
             }
         }

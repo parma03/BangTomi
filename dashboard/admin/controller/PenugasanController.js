@@ -644,6 +644,7 @@ $(document).ready(function () {
     form[0].reset();
     $("#id_pegawai_mc").val(null).trigger("change");
     $("#id_pegawai_protokol").val(null).trigger("change");
+    $("#channel_ht").val("");
 
     // Clear validation classes
     form.find(".is-invalid").removeClass("is-invalid");

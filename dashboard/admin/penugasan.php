@@ -397,6 +397,31 @@ checkAdminAccess();
                                             </div>
                                         </div>
 
+                                        <!-- Input Channel HT -->
+                                        <div class="mb-4 mt-4">
+                                            <div class="card border-warning">
+                                                <div class="card-header bg-warning text-dark">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="fas fa-radio me-2"></i>Channel HT (Handy Talky)
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="mb-3">
+                                                        <label for="channel_ht" class="form-label fw-semibold">
+                                                            <i class="fas fa-broadcast-tower text-warning me-1"></i>Channel HT
+                                                        </label>
+                                                        <input type="text" class="form-control form-control-lg"
+                                                            id="channel_ht" name="channel_ht"
+                                                            placeholder="Contoh: Channel 1, Freq 145.500 MHz" required>
+                                                        <div class="form-text">
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            Masukkan channel atau frekuensi HT yang akan digunakan selama kegiatan
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Opsi Notifikasi Otomatis -->
                                         <div class="mb-4 mt-4">
                                             <div class="card border-success">
@@ -429,6 +454,7 @@ checkAdminAccess();
                                                 <li>Minimal pilih satu petugas (MC atau Protokol atau keduanya)</li>
                                                 <li>Petugas tidak dapat ditugaskan ke kegiatan yang jadwalnya bersamaan</li>
                                                 <li>Anda dapat memilih beberapa petugas untuk setiap kategori</li>
+                                                <li>Channel HT untuk koordinasi komunikasi selama kegiatan</li>
                                                 <li>Notifikasi akan dikirim otomatis jika opsi diaktifkan</li>
                                             </ul>
                                         </div>
