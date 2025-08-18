@@ -579,7 +579,7 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
 
       <nav id="navmenu" class="navmenu">
         <ul>
-          <li><a href="#hero" class="active">FEFE</a></li>
+          <li><a href="#hero" class="active">Home</a></li>
           <li><a href="#profile">Profile</a></li>
           <li><a href="#agenda_kegiatan">Agenda Kegiatan</a></li>
           <li><a href="#portfolio">Histori Kegiatan</a></li>
