@@ -917,13 +917,6 @@ if ($kegiatan_id > 0) {
                                         echo $created->format('d F Y');
                                         ?>
                                     </li>
-                                    <?php if (!empty($kegiatan['kehadiran_kegiatan'])): ?>
-                                        <li><strong>Daftar Kehadiran</strong>:
-                                            <a href="<?php echo htmlspecialchars($kegiatan['kehadiran_kegiatan']); ?>" target="_blank" class="btn btn-sm btn-success">
-                                                <i class="bi bi-file-earmark-spreadsheet"></i> Lihat Kehadiran
-                                            </a>
-                                        </li>
-                                    <?php endif; ?>
                                     <?php if (!empty($kegiatanRecord)): ?>
                                         <li><strong>Dokumentasi</strong>:
                                             <span class="badge bg-primary"><?php echo count($kegiatanRecord); ?> file</span>

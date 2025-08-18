@@ -715,7 +715,12 @@ function addPenugasanWithNotification($pdo)
                     $customMessage = "🔔 *PENUGASAN BARU*\n\n" .
                         "📋 *Kegiatan:* {$kegiatan['judul_kegiatan']}\n" .
                         "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan'])) . "\n" .
-                        "📝 *Deskripsi:* {$kegiatan['deksripsi_kegiatan']}\n";
+                        "📝 *Deskripsi:* {$kegiatan['deksripsi_kegiatan']}\n\n";
+
+                    if (!empty($channelHT)) {
+                        $customMessage .= "📡 *Channel HT:* {$channelHT}\n";
+                    }
+                    $customMessage .= "\n";
 
                     if (!empty($petugasMC)) {
                         $customMessage .= "🎤 *Petugas MC:*\n";
@@ -751,6 +756,10 @@ function addPenugasanWithNotification($pdo)
                             $customMessage .= ($index + 1) . ". {$nama}\n";
                         }
                         $customMessage .= "\n";
+                    }
+
+                    if (!empty($channelHT)) {
+                        $customMessage .= "📻 *Catatan:* Pastikan HT sudah di-set ke channel: {$channelHT}\n\n";
                     }
 
                     $customMessage .= "💼 Mohon bersiap dan catat jadwal ini dengan baik!\n\n" .
@@ -877,9 +886,21 @@ function sendManualNotification($pdo)
         $customMessage = "📢 *NOTIFIKASI MANUAL KEGIATAN*\n\n" .
             "📋 *Kegiatan:* {$penugasan['judul_kegiatan']}\n" .
             "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($penugasan['jadwal_kegiatan'])) . "\n" .
-            "📝 *Deskripsi:* {$penugasan['deksripsi_kegiatan']}" .
-            "⚠️ *Pengingat khusus untuk:* {$penugasan['nama_petugas']}\n\n" .
-            "💼 Mohon mempersiapkan diri dengan baik dan koordinasi dengan tim!\n\n" .
+            "📝 *Deskripsi:* {$penugasan['deksripsi_kegiatan']}\n\n";
+
+        // Tambahkan informasi Channel HT jika ada
+        if (!empty($penugasan['channel_ht'])) {
+            $customMessage .= "📡 *Channel HT:* {$penugasan['channel_ht']}\n";
+        }
+
+        $customMessage .= "⚠️ *Pengingat khusus untuk:* {$penugasan['nama_petugas']} ({$penugasan['category']})\n\n";
+
+        // Tambahkan reminder tentang HT jika ada channel
+        if (!empty($penugasan['channel_ht'])) {
+            $customMessage .= "📻 *Catatan:* Pastikan HT sudah di-set ke channel: {$penugasan['channel_ht']}\n\n";
+        }
+
+        $customMessage .= "💼 Mohon mempersiapkan diri dengan baik dan koordinasi dengan tim!\n\n" .
             "🔗 *Link Kehadiran:* {$penugasan['kehadiran_kegiatan']}";
 
         // Kirim notifikasi manual
