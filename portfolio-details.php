@@ -28,6 +28,8 @@ function getKegiatanDetail($pdo, $id)
                     k.thumbnails_kegiatan,
                     k.kehadiran_kegiatan,
                     k.status_kegiatan,
+                    k.alamat_kegiatan,
+                    k.lokasi_kegiatan,
                     k.created_at,
                     GROUP_CONCAT(CONCAT(u.nama, '|', u.nohp) SEPARATOR ';') as petugas_info
                 FROM tb_kegiatan k
@@ -911,10 +913,20 @@ if ($kegiatan_id > 0) {
                                         echo $jadwal->format('d F Y, H:i') . ' WIB';
                                         ?>
                                     </li>
-                                    <li><strong>Tanggal Dibuat</strong>:
+                                    <li><strong>Tanggal Kegiatan</strong>:
                                         <?php
-                                        $created = new DateTime($kegiatan['created_at']);
-                                        echo $created->format('d F Y');
+                                        $jadwal = new DateTime($kegiatan['alamat_kegiatan']);
+                                        echo $jadwal->format('d F Y, H:i') . ' WIB';
+                                        ?>
+                                    </li>
+                                    <li><strong>Alamat Kegiatan</strong>:
+                                        <?php
+                                        echo ucfirst($kegiatan['alamat_kegiatan'] ?? "-");
+                                        ?>
+                                    </li>
+                                    <li><strong>Lokasi Kegiatan</strong>:
+                                        <?php
+                                        echo ucfirst($kegiatan['lokasi_kegiatan'] ?? "-");
                                         ?>
                                     </li>
                                     <?php if (!empty($kegiatanRecord)): ?>
