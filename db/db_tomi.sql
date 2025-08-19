@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 19, 2025 at 06:46 AM
+-- Generation Time: Aug 19, 2025 at 07:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -66,6 +66,8 @@ CREATE TABLE `tb_kegiatan` (
   `deksripsi_kegiatan` text NOT NULL,
   `jadwal_kegiatan` timestamp NOT NULL DEFAULT current_timestamp(),
   `kehadiran_kegiatan` text NOT NULL,
+  `alamat_kegiatan` text DEFAULT NULL,
+  `lokasi_kegiatan` varchar(255) DEFAULT NULL,
   `thumbnails_kegiatan` text NOT NULL,
   `status_kegiatan` enum('selesai','pending') NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -76,10 +78,9 @@ CREATE TABLE `tb_kegiatan` (
 -- Dumping data for table `tb_kegiatan`
 --
 
-INSERT INTO `tb_kegiatan` (`id_kegiatan`, `judul_kegiatan`, `deksripsi_kegiatan`, `jadwal_kegiatan`, `kehadiran_kegiatan`, `thumbnails_kegiatan`, `status_kegiatan`, `created_at`, `updated_at`) VALUES
-(10, 'UPACARA PERINGATAN HUT RI KE-80', 'Pelaksanaan HUT RI 80', '2025-08-17 00:00:00', '-', 'kegiatan_1755572964_68a3eae4a1b58.jpg', 'pending', '2025-08-19 03:09:24', '2025-08-19 03:09:24'),
-(11, 'UPACARA PENURUNAN BENDERA MERAH PUTIH', 'Penurunan Bendera Sang Merah Putih', '2025-08-17 10:00:00', '-', 'kegiatan_1755573243_68a3ebfbb212c.jpg', 'pending', '2025-08-19 03:14:03', '2025-08-19 03:14:03'),
-(12, 'Ramah Tamah TIM Penilai IMTI dengan Gubernur Sumatera Barat', 'Acara diawali dengan Makan Malam', '2025-08-19 04:17:00', '-', 'kegiatan_1755577087_68a3faff215dd.JPG', 'pending', '2025-08-19 04:18:07', '2025-08-19 04:18:07');
+INSERT INTO `tb_kegiatan` (`id_kegiatan`, `judul_kegiatan`, `deksripsi_kegiatan`, `jadwal_kegiatan`, `kehadiran_kegiatan`, `alamat_kegiatan`, `lokasi_kegiatan`, `thumbnails_kegiatan`, `status_kegiatan`, `created_at`, `updated_at`) VALUES
+(10, 'UPACARA PERINGATAN HUT RI KE-80', 'Pelaksanaan HUT RI 80', '2025-08-17 00:00:00', '-', NULL, NULL, 'kegiatan_1755572964_68a3eae4a1b58.jpg', 'pending', '2025-08-19 03:09:24', '2025-08-19 03:09:24'),
+(11, 'UPACARA PENURUNAN BENDERA MERAH PUTIH', 'Penurunan Bendera Sang Merah Putih', '2025-08-17 10:00:00', '-', NULL, NULL, 'kegiatan_1755573243_68a3ebfbb212c.jpg', 'pending', '2025-08-19 03:14:03', '2025-08-19 03:14:03');
 
 -- --------------------------------------------------------
 
@@ -209,10 +210,7 @@ INSERT INTO `tb_penugasan` (`id_penugasan`, `id_kegiatan`, `id_pegawai`, `catego
 (35, 10, 19, 'Protokol', '15'),
 (36, 10, 18, 'Protokol', '15'),
 (37, 11, 17, 'MC', '15'),
-(38, 11, 18, 'Protokol', '15'),
-(39, 12, 21, 'MC', '15'),
-(40, 12, 19, 'Protokol', '15'),
-(41, 12, 17, 'Protokol', '15');
+(38, 11, 18, 'Protokol', '15');
 
 -- --------------------------------------------------------
 
@@ -361,7 +359,7 @@ ALTER TABLE `tb_appsetting`
 -- AUTO_INCREMENT for table `tb_kegiatan`
 --
 ALTER TABLE `tb_kegiatan`
-  MODIFY `id_kegiatan` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_kegiatan` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `tb_komentar`

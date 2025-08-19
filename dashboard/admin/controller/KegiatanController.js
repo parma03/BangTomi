@@ -916,8 +916,12 @@ $(document).ready(function () {
     const modalTitle = $("#kegiatanFormModalLabel");
     const submitBtn = form.find('button[type="submit"]');
 
-    // Reset form
+    // Reset form - PERBAIKAN: Pastikan semua field ter-reset dengan benar
     form[0].reset();
+
+    // TAMBAHAN: Reset field hidden secara eksplisit
+    $("#idKegiatan").val(""); // Pastikan ID ter-reset
+
     $("#profilePreview").hide();
     $("#removeProfileBtn").hide();
     $("#uploadPlaceholder").show();
@@ -928,7 +932,7 @@ $(document).ready(function () {
     form.find(".is-invalid").removeClass("is-invalid");
 
     if (kegiatanId) {
-      // Mode Edit
+      // Mode Edit - kode existing Anda...
       modalTitle.html('<i class="fas fa-edit me-2"></i>Edit Kegiatan');
       submitBtn.html('<i class="fas fa-save me-1"></i>Update Kegiatan');
 
@@ -948,13 +952,12 @@ $(document).ready(function () {
           hideLoading();
 
           console.log("Get kegiatan by ID response:", response);
-          console.log("Kegiatan data:", response.data);
 
           if (response.status === "success") {
             const kegiatan = response.data;
-
             const modalSelector = "#kegiatanFormModal ";
 
+            // Set ID untuk mode edit
             if (kegiatan.id_kegiatan) {
               $(modalSelector + "#idKegiatan").val(kegiatan.id_kegiatan);
             }
@@ -978,6 +981,18 @@ $(document).ready(function () {
             if (kegiatan.kehadiran_kegiatan) {
               $(modalSelector + "#kehadiran_kegiatan").val(
                 kegiatan.kehadiran_kegiatan
+              );
+            }
+
+            if (kegiatan.alamat_kegiatan) {
+              $(modalSelector + "#alamat_kegiatan").val(
+                kegiatan.alamat_kegiatan
+              );
+            }
+
+            if (kegiatan.lokasi_kegiatan) {
+              $(modalSelector + "#lokasi_kegiatan").val(
+                kegiatan.lokasi_kegiatan
               );
             }
 
@@ -1073,16 +1088,26 @@ $(document).ready(function () {
         },
       });
     } else {
-      // Mode Add - existing code
       modalTitle.html(
         '<i class="fas fa-user-plus me-2"></i>Tambah Kegiatan Baru'
       );
       submitBtn.html('<i class="fas fa-save me-1"></i>Simpan Kegiatan');
-      $("#id").val("");
+
+      // PENTING: Reset eksplisit untuk mode add
+      $("#idKegiatan").val(""); // Pastikan ID kosong untuk create
+      $("#judul_kegiatan").val("");
+      $("#jadwal_kegiatan").val("");
+      $("#deksripsi_kegiatan").val("");
+      $("#kehadiran_kegiatan").val("");
+      $("#alamat_kegiatan").val("");
+      $("#lokasi_kegiatan").val("");
+
+      // Reset required attributes
       $("#password").attr("required", "required");
       $("#password").attr("placeholder", "Masukkan password");
       $("#confirm_passwords").attr("required", "required");
       $("#confirm_passwords").attr("placeholder", "Konfirmasi password");
+
       modal.modal("show");
     }
   }
@@ -1102,6 +1127,8 @@ $(document).ready(function () {
     const requiredFields = [
       "judul_kegiatan",
       "jadwal_kegiatan",
+      "alamat_kegiatan",
+      "lokasi_kegiatan",
       "status_kegiatan",
     ];
     let isValid = true;

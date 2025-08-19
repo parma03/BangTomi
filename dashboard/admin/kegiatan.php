@@ -576,6 +576,37 @@ checkAdminAccess();
                                             </div>
                                         </div>
 
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="alamat_kegiatan" class="form-label fw-semibold">
+                                                        <i class="fas fa-map-marker-alt text-warning me-1"></i>Alamat Kegiatan
+                                                        <span class="text-danger">*</span>
+                                                    </label>
+                                                    <textarea class="form-control" id="alamat_kegiatan"
+                                                        name="alamat_kegiatan" rows="3" required
+                                                        placeholder="Masukkan alamat lengkap kegiatan..."></textarea>
+                                                    <div class="invalid-feedback">
+                                                        Alamat kegiatan wajib diisi
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="lokasi_kegiatan" class="form-label fw-semibold">
+                                                        <i class="fas fa-building text-info me-1"></i>Lokasi/Tempat Kegiatan
+                                                        <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input type="text" class="form-control form-control-lg"
+                                                        id="lokasi_kegiatan" name="lokasi_kegiatan" required
+                                                        placeholder="Contoh: Gedung Serbaguna, Aula Utama, dll">
+                                                    <div class="invalid-feedback">
+                                                        Lokasi kegiatan wajib diisi
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="mb-3">
                                             <label for="deksripsi_kegiatan" class="form-label fw-semibold">
                                                 <i class="fas fa-align-left text-info me-1"></i>Deskripsi Kegiatan

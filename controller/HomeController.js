@@ -468,6 +468,13 @@ function createKegiatanCard(kegiatan) {
               <small>Pukul ${waktuFormatted} WIB</small>
             </div>
           </div>
+          <div class="kegiatan-schedule">
+            <i class="bi bi-geo-alt"></i>
+            <div>
+              <strong>${kegiatan.alamat_kegiatan ?? "-"}</strong><br>
+              <small>Lokasi: ${kegiatan.lokasi_kegiatan ?? "-"}</small>
+            </div>
+          </div>
           ${contactsHtml}
         </div>
       </div>

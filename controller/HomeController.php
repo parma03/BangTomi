@@ -305,6 +305,8 @@ function getPendingKegiatan($pdo)
                     k.deksripsi_kegiatan,
                     k.jadwal_kegiatan,
                     k.thumbnails_kegiatan,
+                    k.alamat_kegiatan,
+                    k.lokasi_kegiatan,
                     GROUP_CONCAT(CONCAT(u.nama, '|', u.nohp) SEPARATOR ';') as petugas_info
                 FROM tb_kegiatan k
                 LEFT JOIN tb_penugasan p ON k.id_kegiatan = p.id_kegiatan
