@@ -681,6 +681,7 @@ function addPenugasanWithNotification($pdo)
                     // Buat custom message untuk group
                     $customMessage = "🔔 *PENUGASAN BARU*\n\n" .
                         "📋 *Kegiatan:* {$kegiatan['judul_kegiatan']}\n" .
+                        "📞 *Narahubung:* {$kegiatan['narahubung_kegiatan']}\n" .
                         "📍 *Alamat:* {$kegiatan['alamat_kegiatan']}\n" .
                         "🗺️ *Lokasi:* {$kegiatan['lokasi_kegiatan']}\n" .
                         "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan'])) . "\n" .
@@ -811,6 +812,7 @@ function sendManualNotification($pdo)
         // Buat custom message untuk notifikasi manual ke group
         $customMessage = "📢 *NOTIFIKASI MANUAL KEGIATAN*\n\n" .
             "📋 *Kegiatan:* {$penugasan['judul_kegiatan']}\n" .
+            "📞 *Narahubung:* {$penugasan['narahubung_kegiatan']}\n" .
             "📍 *Alamat:* {$penugasan['alamat_kegiatan']}\n" .
             "🗺️ *Lokasi:* {$penugasan['lokasi_kegiatan']}\n" .
             "📅 *Jadwal:* " . date('d/m/Y H:i', strtotime($penugasan['jadwal_kegiatan'])) . "\n" .

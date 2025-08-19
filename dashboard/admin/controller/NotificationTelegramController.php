@@ -146,6 +146,7 @@ class NotificationTelegramController
         $judulKegiatan = $kegiatan['judul_kegiatan'];
         $alamatKegiatan = $kegiatan['alamat_kegiatan'] ?? 'Belum tersedia';
         $lokasiKegiatan = $kegiatan['lokasi_kegiatan'] ?? 'Belum tersedia';
+        $narahubungKegiatan = $kegiatan['narahubung_kegiatan'] ?? 'Belum tersedia';
         $deskripsiKegiatan = $kegiatan['deksripsi_kegiatan'];
         $jadwalKegiatan = date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan']));
         $linkKehadiran = $kegiatan['kehadiran_kegiatan'] ?? 'Belum tersedia';
@@ -180,6 +181,7 @@ class NotificationTelegramController
 
         // Template dasar yang sama untuk semua jenis notifikasi
         $baseMessage = "📋 *Kegiatan:* {$judulKegiatan}\n" .
+            "📞 *Narahubung:* {$narahubungKegiatan}\n" .
             "📍 *Alamat:* {$alamatKegiatan}\n" .
             "🗺️ *Lokasi:* {$lokasiKegiatan}\n" .
             "📅 *Jadwal:* {$jadwalKegiatan}\n" .
@@ -440,6 +442,7 @@ class NotificationTelegramController
         $judulKegiatan = $kegiatan['judul_kegiatan'];
         $alamatKegiatan = $kegiatan['alamat_kegiatan'] ?? 'Belum tersedia';
         $lokasiKegiatan = $kegiatan['lokasi_kegiatan'] ?? 'Belum tersedia';
+        $narahubungKegiatan = $kegiatan['narahubung_kegiatan'] ?? 'Belum tersedia';
         $deskripsiKegiatan = $kegiatan['deksripsi_kegiatan'];
         $jadwalKegiatan = date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan']));
         $linkKehadiran = $kegiatan['kehadiran_kegiatan'] ?? 'Belum tersedia';
@@ -474,6 +477,7 @@ class NotificationTelegramController
 
         $message = "📢 *NOTIFIKASI MANUAL KEGIATAN*\n\n" .
             "📋 *Kegiatan:* {$judulKegiatan}\n" .
+            "📞 *Narahubung:* {$narahubungKegiatan}\n" .
             "📍 *Alamat:* {$alamatKegiatan}\n" .
             "🗺️ *Lokasi:* {$lokasiKegiatan}\n" .
             "📅 *Jadwal:* {$jadwalKegiatan}\n" .
