@@ -144,43 +144,87 @@ class NotificationTelegramController
     private function createGroupNotificationMessage($kegiatan, $petugasList, $notificationType, $daysDiff)
     {
         $judulKegiatan = $kegiatan['judul_kegiatan'];
+        $alamatKegiatan = $kegiatan['alamat_kegiatan'] ?? 'Belum tersedia';
+        $lokasiKegiatan = $kegiatan['lokasi_kegiatan'] ?? 'Belum tersedia';
         $deskripsiKegiatan = $kegiatan['deksripsi_kegiatan'];
         $jadwalKegiatan = date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan']));
         $linkKehadiran = $kegiatan['kehadiran_kegiatan'] ?? 'Belum tersedia';
 
-        // Format daftar petugas dengan mention atau nama
-        $petugasText = '';
-        foreach ($petugasList as $index => $petugas) {
-            $petugasText .= ($index + 1) . '. ' . $petugas['nama'];
-            if (!empty($petugas['nohp'])) {
-                $petugasText .= ' (' . $petugas['nohp'] . ')';
+        // Kelompokkan petugas berdasarkan kategori dari tb_penugasan
+        $petugasMC = [];
+        $petugasProtokol = [];
+        $channelHT = '';
+
+        // Ambil data kategori dan channel HT dari tb_penugasan
+        foreach ($petugasList as $petugas) {
+            $sql = "SELECT category, channel_ht FROM tb_penugasan 
+                WHERE id_kegiatan = ? AND id_pegawai = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param('ii', $kegiatan['id_kegiatan'], $petugas['id']);
+            $stmt->execute();
+            $penugasanData = $stmt->get_result()->fetch_assoc();
+
+            if ($penugasanData) {
+                if ($penugasanData['category'] === 'MC') {
+                    $petugasMC[] = $petugas;
+                } else {
+                    $petugasProtokol[] = $petugas;
+                }
+
+                // Ambil channel HT (asumsi semua petugas menggunakan channel yang sama)
+                if (empty($channelHT) && !empty($penugasanData['channel_ht'])) {
+                    $channelHT = $penugasanData['channel_ht'];
+                }
             }
-            $petugasText .= "\n";
         }
 
+        // Template dasar yang sama untuk semua jenis notifikasi
+        $baseMessage = "📋 *Kegiatan:* {$judulKegiatan}\n" .
+            "📍 *Alamat:* {$alamatKegiatan}\n" .
+            "🗺️ *Lokasi:* {$lokasiKegiatan}\n" .
+            "📅 *Jadwal:* {$jadwalKegiatan}\n" .
+            "📝 *Deskripsi:* {$deskripsiKegiatan}\n\n";
+
+        // Tambahkan channel HT jika ada
+        if (!empty($channelHT)) {
+            $baseMessage .= "📡 *Channel HT:* {$channelHT}\n\n";
+        }
+
+        // Format petugas berdasarkan kategori
+        if (!empty($petugasMC)) {
+            $baseMessage .= "🎤 *Petugas MC:*\n";
+            foreach ($petugasMC as $index => $petugas) {
+                $baseMessage .= ($index + 1) . ". {$petugas['nama']}\n";
+            }
+            $baseMessage .= "\n";
+        }
+
+        if (!empty($petugasProtokol)) {
+            $baseMessage .= "📋 *Petugas Protokol:*\n";
+            foreach ($petugasProtokol as $index => $petugas) {
+                $baseMessage .= ($index + 1) . ". {$petugas['nama']}\n";
+            }
+            $baseMessage .= "\n";
+        }
+
+        // Header dan footer berbeda berdasarkan jenis notifikasi
         $messages = [
             'reminder_1_days' => "🔔 *PENGINGAT TUGAS - 1 HARI*\n\n" .
-                "📋 *Kegiatan:* {$judulKegiatan}\n" .
-                "📅 *Jadwal:* {$jadwalKegiatan}\n" .
-                "📝 *Deskripsi:* {$deskripsiKegiatan}\n\n" .
-                "👥 *Petugas yang Ditugaskan:*\n{$petugasText}\n" .
-                "⚠️ Mohon untuk mempersiapkan diri dan koordinasi dengan tim.\n\n" .
+                $baseMessage .
+                ($channelHT ? "📻 *Catatan:* Pastikan HT sudah di-set ke channel: {$channelHT}\n\n" : "") .
+                "💼 Mohon bersiap dan catat jadwal ini dengan baik!\n\n" .
                 "🔗 *Link Kehadiran:* {$linkKehadiran}",
 
             'reminder_3_days' => "⚠️ *PENGINGAT TUGAS - 3 HARI LAGI*\n\n" .
-                "📋 *Kegiatan:* {$judulKegiatan}\n" .
-                "📅 *Jadwal:* {$jadwalKegiatan}\n" .
-                "📝 *Deskripsi:* {$deskripsiKegiatan}\n\n" .
-                "👥 *Petugas yang Ditugaskan:*\n{$petugasText}\n" .
-                "⏰ Pastikan semua petugas sudah siap dan tidak ada bentrok jadwal!\n\n" .
+                $baseMessage .
+                ($channelHT ? "📻 *Catatan:* Pastikan HT sudah di-set ke channel: {$channelHT}\n\n" : "") .
+                "💼 Mohon bersiap dan catat jadwal ini dengan baik!\n\n" .
                 "🔗 *Link Kehadiran:* {$linkKehadiran}",
 
             'today' => "🚨 *HARI INI - KEGIATAN BERLANGSUNG*\n\n" .
-                "📋 *Kegiatan:* {$judulKegiatan}\n" .
-                "📅 *Jadwal:* {$jadwalKegiatan}\n" .
-                "📝 *Deskripsi:* {$deskripsiKegiatan}\n\n" .
-                "👥 *Petugas yang Bertugas Hari Ini:*\n{$petugasText}\n" .
-                "💼 Mohon semua petugas hadir tepat waktu dan bawa perlengkapan yang diperlukan!\n\n" .
+                $baseMessage .
+                ($channelHT ? "📻 *Catatan:* Pastikan HT sudah di-set ke channel: {$channelHT}\n\n" : "") .
+                "💼 Mohon bersiap dan catat jadwal ini dengan baik!\n\n" .
                 "🔗 *Link Kehadiran:* {$linkKehadiran}"
         ];
 
@@ -394,27 +438,78 @@ class NotificationTelegramController
     private function createManualGroupNotificationMessage($kegiatan, $petugasList)
     {
         $judulKegiatan = $kegiatan['judul_kegiatan'];
+        $alamatKegiatan = $kegiatan['alamat_kegiatan'] ?? 'Belum tersedia';
+        $lokasiKegiatan = $kegiatan['lokasi_kegiatan'] ?? 'Belum tersedia';
         $deskripsiKegiatan = $kegiatan['deksripsi_kegiatan'];
         $jadwalKegiatan = date('d/m/Y H:i', strtotime($kegiatan['jadwal_kegiatan']));
         $linkKehadiran = $kegiatan['kehadiran_kegiatan'] ?? 'Belum tersedia';
 
-        // Format daftar petugas
-        $petugasText = '';
-        foreach ($petugasList as $index => $petugas) {
-            $petugasText .= ($index + 1) . '. ' . $petugas['nama'];
-            if (!empty($petugas['nohp'])) {
-                $petugasText .= ' (' . $petugas['nohp'] . ')';
+        // Kelompokkan petugas berdasarkan kategori dari tb_penugasan
+        $petugasMC = [];
+        $petugasProtokol = [];
+        $channelHT = '';
+
+        // Ambil data kategori dan channel HT dari tb_penugasan
+        foreach ($petugasList as $petugas) {
+            $sql = "SELECT category, channel_ht FROM tb_penugasan 
+                WHERE id_kegiatan = ? AND id_pegawai = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param('ii', $kegiatan['id_kegiatan'], $petugas['id']);
+            $stmt->execute();
+            $penugasanData = $stmt->get_result()->fetch_assoc();
+
+            if ($penugasanData) {
+                if ($penugasanData['category'] === 'MC') {
+                    $petugasMC[] = $petugas;
+                } else {
+                    $petugasProtokol[] = $petugas;
+                }
+
+                // Ambil channel HT (asumsi semua petugas menggunakan channel yang sama)
+                if (empty($channelHT) && !empty($penugasanData['channel_ht'])) {
+                    $channelHT = $penugasanData['channel_ht'];
+                }
             }
-            $petugasText .= "\n";
         }
 
-        return "📢 *NOTIFIKASI KEGIATAN*\n\n" .
+        $message = "📢 *NOTIFIKASI MANUAL KEGIATAN*\n\n" .
             "📋 *Kegiatan:* {$judulKegiatan}\n" .
+            "📍 *Alamat:* {$alamatKegiatan}\n" .
+            "🗺️ *Lokasi:* {$lokasiKegiatan}\n" .
             "📅 *Jadwal:* {$jadwalKegiatan}\n" .
-            "📝 *Deskripsi:* {$deskripsiKegiatan}\n\n" .
-            "👥 *Petugas yang Ditugaskan:*\n{$petugasText}\n" .
-            "💼 Mohon semua petugas untuk mempersiapkan diri dengan baik.\n\n" .
+            "📝 *Deskripsi:* {$deskripsiKegiatan}\n\n";
+
+        // Tambahkan channel HT jika ada
+        if (!empty($channelHT)) {
+            $message .= "📡 *Channel HT:* {$channelHT}\n\n";
+        }
+
+        // Format petugas berdasarkan kategori
+        if (!empty($petugasMC)) {
+            $message .= "🎤 *Petugas MC:*\n";
+            foreach ($petugasMC as $index => $petugas) {
+                $message .= ($index + 1) . ". {$petugas['nama']}\n";
+            }
+            $message .= "\n";
+        }
+
+        if (!empty($petugasProtokol)) {
+            $message .= "📋 *Petugas Protokol:*\n";
+            foreach ($petugasProtokol as $index => $petugas) {
+                $message .= ($index + 1) . ". {$petugas['nama']}\n";
+            }
+            $message .= "\n";
+        }
+
+        // Footer
+        if (!empty($channelHT)) {
+            $message .= "📻 *Catatan:* Pastikan HT sudah di-set ke channel: {$channelHT}\n\n";
+        }
+
+        $message .= "💼 Mohon bersiap dan catat jadwal ini dengan baik!\n\n" .
             "🔗 *Link Kehadiran:* {$linkKehadiran}";
+
+        return $message;
     }
 
     /**
