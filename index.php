@@ -558,6 +558,24 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
         transform: rotate(360deg);
       }
     }
+
+    /* Profile Section Text Styling */
+    #profile .content p {
+      text-align: justify;
+      text-justify: inter-word;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      #profile .content p {
+        text-align: left;
+      }
+    }
+
+    #profile .content p:last-child {
+      margin-bottom: 0;
+    }
   </style>
 </head>
 
@@ -804,13 +822,19 @@ $hasValidVideo = isValidVideoFile($appSetting['video_header']);
           <div class="col-lg-6" data-aos="fade-up" data-aos-delay="250">
             <div class="content ps-0 ps-lg-5">
               <?php if (!empty($appSetting['deskripsi_tentang_kami'])): ?>
-                <p><?php echo nl2br(htmlspecialchars($appSetting['deskripsi_tentang_kami'])); ?></p>
+                <p style="text-align: justify; text-justify: inter-word; line-height: 1.6;">
+                  <?php echo nl2br(htmlspecialchars($appSetting['deskripsi_tentang_kami'])); ?>
+                </p>
               <?php else: ?>
-                <p>Ut fugiat ut sunt quia veniam. Voluptate perferendis perspiciatis quod nisi et. Placeat debitis quia
-                  recusandae odit et consequatur voluptatem. Dignissimos pariatur consectetur fugiat voluptas ea.</p>
-                <p>Temporibus nihil enim deserunt sed ea. Provident sit expedita aut cupiditate nihil vitae quo officia vel.
+                <p style="text-align: justify; text-justify: inter-word; line-height: 1.6;">
+                  Ut fugiat ut sunt quia veniam. Voluptate perferendis perspiciatis quod nisi et. Placeat debitis quia
+                  recusandae odit et consequatur voluptatem. Dignissimos pariatur consectetur fugiat voluptas ea.
+                </p>
+                <p style="text-align: justify; text-justify: inter-word; line-height: 1.6;">
+                  Temporibus nihil enim deserunt sed ea. Provident sit expedita aut cupiditate nihil vitae quo officia vel.
                   Blanditiis eligendi possimus et in cum. Quidem eos ut sint rem veniam qui. Ut ut repellendus nobis tempore
-                  doloribus debitis explicabo similique sit. Accusantium sed ut omnis beatae neque deleniti repellendus.</p>
+                  doloribus debitis explicabo similique sit. Accusantium sed ut omnis beatae neque deleniti repellendus.
+                </p>
               <?php endif; ?>
             </div>
           </div>
