@@ -608,6 +608,20 @@ checkAdminAccess();
                                         </div>
 
                                         <div class="mb-3">
+                                            <label for="narahubung_kegiatan" class="form-label fw-semibold">
+                                                <i class="fas fa-envelope text-primary me-1"></i>Narahubung Kegiatan
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="text" class="form-control form-control-lg"
+                                                id="narahubung_kegiatan" name="narahubung_kegiatan" required
+                                                placeholder="Narahubung Kegiatan Anda">
+                                            <div class="invalid-feedback">
+                                                Narahubung Kegiatan wajib diisi
+                                            </div>
+                                        </div>
+
+
+                                        <div class="mb-3">
                                             <label for="deksripsi_kegiatan" class="form-label fw-semibold">
                                                 <i class="fas fa-align-left text-info me-1"></i>Deskripsi Kegiatan
                                                 <span class="text-danger">*</span>

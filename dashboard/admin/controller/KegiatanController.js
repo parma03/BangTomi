@@ -996,6 +996,12 @@ $(document).ready(function () {
               );
             }
 
+            if (kegiatan.narahubung_kegiatan) {
+              $(modalSelector + "#narahubung_kegiatan").val(
+                kegiatan.narahubung_kegiatan
+              );
+            }
+
             // Verification setelah modal ditampilkan
             setTimeout(() => {
               console.log("=== VERIFICATION AFTER MODAL SHOWN ===");
@@ -1023,6 +1029,11 @@ $(document).ready(function () {
               console.log(
                 "Kehadiran field value:",
                 $(modalSelector + "#kehadiran_kegiatan").val()
+              );
+
+              console.log(
+                "narahubung_kegiatan field value:",
+                $(modalSelector + "#narahubung_kegiatan").val()
               );
 
               // Cek apakah elemen yang benar yang terisi
@@ -1101,6 +1112,7 @@ $(document).ready(function () {
       $("#kehadiran_kegiatan").val("");
       $("#alamat_kegiatan").val("");
       $("#lokasi_kegiatan").val("");
+      $("#narahubung_kegiatan").val("");
 
       // Reset required attributes
       $("#password").attr("required", "required");
@@ -1129,6 +1141,8 @@ $(document).ready(function () {
       "jadwal_kegiatan",
       "alamat_kegiatan",
       "lokasi_kegiatan",
+      "narahubung_kegiatan",
+      "kehadiran_kegiatan",
       "status_kegiatan",
     ];
     let isValid = true;

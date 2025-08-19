@@ -270,6 +270,8 @@ function getDataKegiatan($pdo)
                         <th scope="col" style="width: 5%;">#</th>
                         <th scope="col" style="width: 20%;">Judul Kegiatan</th>
                         <th scope="col" style="width: 20%;">Jadwal Kegiatan</th>
+                        <th scope="col" style="width: 15%;">Alamat Kegiatan</th>
+                        <th scope="col" style="width: 15%;">Lokasi Kegiatan</th>
                         <th scope="col" style="width: 20%;">Status Kegiatan</th>
                         <th scope="col" style="width: 10%;">Created At</th>
                         <th scope="col" style="width: 10%;">Aksi</th>
@@ -290,6 +292,16 @@ function getDataKegiatan($pdo)
                             <td>
                                 <span class="badge bg-secondary">
                                     <?php echo htmlspecialchars($kegiatan['jadwal_kegiatan']); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">
+                                    <?php echo htmlspecialchars($kegiatan['alamat_kegiatan']); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">
+                                    <?php echo htmlspecialchars($kegiatan['lokasi_kegiatan']); ?>
                                 </span>
                             </td>
                             <td>
@@ -506,6 +518,22 @@ function getDetailKegiatan($pdo, $kegiatanId)
                                                     echo '<span class="text-muted">Belum tersedia</span>';
                                                 }
                                                 ?>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">
+                                                <i class="bx bx-map-marker-alt me-1 text-muted"></i>Alamat:
+                                            </td>
+                                            <td class="text-break">
+                                                <small><?php echo nl2br(htmlspecialchars($kegiatan['alamat_kegiatan'])); ?></small>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">
+                                                <i class="bx bx-building me-1 text-muted"></i>Lokasi:
+                                            </td>
+                                            <td class="text-break">
+                                                <?php echo htmlspecialchars($kegiatan['lokasi_kegiatan']); ?>
                                             </td>
                                         </tr>
                                         <tr>

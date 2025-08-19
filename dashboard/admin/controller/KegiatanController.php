@@ -270,8 +270,8 @@ function getDataKegiatan($pdo)
                         <th scope="col" style="width: 5%;">#</th>
                         <th scope="col" style="width: 20%;">Judul Kegiatan</th>
                         <th scope="col" style="width: 20%;">Jadwal Kegiatan</th>
-                        <th scope="col" style="width: 15%;">Alamat</th>
-                        <th scope="col" style="width: 15%;">Lokasi</th>
+                        <th scope="col" style="width: 15%;">Alamat Kegiatan</th>
+                        <th scope="col" style="width: 15%;">Lokasi Kegiatan</th>
                         <th scope="col" style="width: 20%;">Status Kegiatan</th>
                         <th scope="col" style="width: 10%;">Created At</th>
                         <th scope="col" style="width: 10%;">Aksi</th>
@@ -522,7 +522,7 @@ function getDetailKegiatan($pdo, $kegiatanId)
                                         </tr>
                                         <tr>
                                             <td class="fw-bold">
-                                                <i class="bx bx-map-marker-alt me-1 text-muted"></i>Alamat:
+                                                Alamat:
                                             </td>
                                             <td class="text-break">
                                                 <small><?php echo nl2br(htmlspecialchars($kegiatan['alamat_kegiatan'])); ?></small>
@@ -530,13 +530,20 @@ function getDetailKegiatan($pdo, $kegiatanId)
                                         </tr>
                                         <tr>
                                             <td class="fw-bold">
-                                                <i class="bx bx-building me-1 text-muted"></i>Lokasi:
+                                                Lokasi:
                                             </td>
                                             <td class="text-break">
                                                 <?php echo htmlspecialchars($kegiatan['lokasi_kegiatan']); ?>
                                             </td>
                                         </tr>
-
+                                        <tr>
+                                            <td class="fw-bold">
+                                                Narahubung:
+                                            </td>
+                                            <td class="text-break">
+                                                <?php echo htmlspecialchars($kegiatan['narahubung_kegiatan']); ?>
+                                            </td>
+                                        </tr>
                                         <tr>
                                             <td class="fw-bold">
                                                 <i class="bx bx-calendar-plus me-1 text-muted"></i>Dibuat:
@@ -680,11 +687,12 @@ function addKegiatan($pdo)
         $kehadiran_kegiatan = $_POST['kehadiran_kegiatan'] ?? '';
         $alamat_kegiatan = $_POST['alamat_kegiatan'] ?? '';
         $lokasi_kegiatan = $_POST['lokasi_kegiatan'] ?? '';
+        $narahubung_kegiatan = $_POST['narahubung_kegiatan'] ?? '';
 
         // Validasi input wajib
         if (
             empty($judul_kegiatan) || empty($jadwal_kegiatan) || empty($kehadiran_kegiatan) ||
-            empty($alamat_kegiatan) || empty($lokasi_kegiatan)
+            empty($alamat_kegiatan) || empty($lokasi_kegiatan) || empty($narahubung_kegiatan)
         ) {
             throw new Exception('Semua field wajib diisi');
         }
@@ -728,7 +736,7 @@ function addKegiatan($pdo)
         }
 
         // Insert data kegiatan baru
-        $sql = "INSERT INTO tb_kegiatan (judul_kegiatan, deksripsi_kegiatan, jadwal_kegiatan, kehadiran_kegiatan, alamat_kegiatan, lokasi_kegiatan, thumbnails_kegiatan, status_kegiatan, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())";
+        $sql = "INSERT INTO tb_kegiatan (judul_kegiatan, deksripsi_kegiatan, jadwal_kegiatan, kehadiran_kegiatan, alamat_kegiatan, lokasi_kegiatan, narahubung_kegiatan, thumbnails_kegiatan, status_kegiatan, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())";
         $stmt = $pdo->prepare($sql);
         $result = $stmt->execute([
             $judul_kegiatan,
@@ -737,6 +745,7 @@ function addKegiatan($pdo)
             $kehadiran_kegiatan,
             $alamat_kegiatan,
             $lokasi_kegiatan,
+            $narahubung_kegiatan,
             $photo_profile
         ]);
 
@@ -837,6 +846,7 @@ function updateKegiatan($pdo)
         $kehadiran_kegiatan = $_POST['kehadiran_kegiatan'] ?? '';
         $alamat_kegiatan = $_POST['alamat_kegiatan'] ?? '';
         $lokasi_kegiatan = $_POST['lokasi_kegiatan'] ?? '';
+        $narahubung_kegiatan = $_POST['narahubung_kegiatan'] ?? '';
         $removeExisting = $_POST['removeExistingKegiatan'] ?? '0';
 
         // Validasi ID kegiatan
@@ -847,7 +857,7 @@ function updateKegiatan($pdo)
         // Validasi input wajib
         if (
             empty($judul_kegiatan) || empty($jadwal_kegiatan) || empty($kehadiran_kegiatan) ||
-            empty($alamat_kegiatan) || empty($lokasi_kegiatan)
+            empty($alamat_kegiatan) || empty($lokasi_kegiatan) || empty($narahubung_kegiatan)
         ) {
             throw new Exception('Semua field wajib diisi');
         }
@@ -921,7 +931,7 @@ function updateKegiatan($pdo)
         }
 
         // Update database
-        $sql = "UPDATE tb_kegiatan SET deksripsi_kegiatan = ?, jadwal_kegiatan = ?, judul_kegiatan = ?, kehadiran_kegiatan = ?, alamat_kegiatan = ?, lokasi_kegiatan = ?, thumbnails_kegiatan = ?, updated_at = NOW() WHERE id_kegiatan = ?";
+        $sql = "UPDATE tb_kegiatan SET deksripsi_kegiatan = ?, jadwal_kegiatan = ?, judul_kegiatan = ?, kehadiran_kegiatan = ?, alamat_kegiatan = ?, lokasi_kegiatan = ?, narahubung_kegiatan = ?, thumbnails_kegiatan = ?, updated_at = NOW() WHERE id_kegiatan = ?";
         $stmt = $pdo->prepare($sql);
         $result = $stmt->execute([
             $deksripsi_kegiatan,
@@ -930,6 +940,7 @@ function updateKegiatan($pdo)
             $kehadiran_kegiatan,
             $alamat_kegiatan,
             $lokasi_kegiatan,
+            $narahubung_kegiatan,
             $photo_profile,
             $kegiatanId
         ]);
