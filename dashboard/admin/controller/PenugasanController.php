@@ -282,6 +282,25 @@ function getDataPenugasan($pdo)
 
         if (count($penugasans) > 0) {
 ?>
+            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                <div>
+                    <h6 class="mb-0 text-muted">
+                        <i class="bx bx-info-circle me-2"></i>
+                        Total: <strong><?php echo count($penugasans); ?></strong> penugasan
+                    </h6>
+                </div>
+                <div>
+                    <button type="button"
+                        class="btn btn-success btn-sm send-all-notifications-btn"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="Kirim Notifikasi ke Semua Petugas untuk Semua Kegiatan Aktif">
+                        <i class="bx bx-bullhorn me-1"></i>
+                        Kirim Notifikasi Keseluruhan
+                    </button>
+                </div>
+            </div>
+
             <table id="penugasanTable" class="table table-hover table-striped align-middle">
                 <thead class="table-dark">
                     <tr>
@@ -386,6 +405,14 @@ function getDataPenugasan($pdo)
             <div class="container-xxl flex-grow-1 container-p-y">
                 <div class="alert alert-info text-center" role="alert">
                     <i class="bx bx-info-circle me-2"></i>Belum ada data Penugasan.
+                    <div class="mt-2">
+                        <button type="button"
+                            class="btn btn-outline-primary add-penugasan-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#penugasanFormModal">
+                            <i class="bx bx-user-plus me-1"></i>Tambah Penugasan Pertama
+                        </button>
+                    </div>
                 </div>
             </div>
 <?php
@@ -929,6 +956,162 @@ function sendManualNotification($pdo)
     exit;
 }
 
+function sendAllNotifications($pdo)
+{
+    try {
+        if (!isset($pdo)) {
+            throw new Exception('Database connection not available');
+        }
+
+        // Ambil semua penugasan dengan detail kegiatan yang statusnya pending
+        $query = "SELECT 
+            p.id_penugasan,
+            p.id_kegiatan,
+            p.id_pegawai,
+            p.category,
+            p.channel_ht,
+            k.*,
+            u.nama as nama_petugas,
+            u.nohp
+          FROM tb_penugasan p
+          JOIN tb_kegiatan k ON p.id_kegiatan = k.id_kegiatan
+          JOIN tb_user u ON p.id_pegawai = u.id
+          WHERE k.status_kegiatan = 'pending'
+          ORDER BY k.jadwal_kegiatan ASC, k.id_kegiatan ASC";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        $penugasans = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($penugasans)) {
+            throw new Exception('Tidak ada penugasan aktif yang ditemukan');
+        }
+
+        // Kelompokkan penugasan berdasarkan kegiatan
+        $kegiatanGroups = [];
+        foreach ($penugasans as $penugasan) {
+            $kegiatanId = $penugasan['id_kegiatan'];
+
+            if (!isset($kegiatanGroups[$kegiatanId])) {
+                $kegiatanGroups[$kegiatanId] = [
+                    'kegiatan' => $penugasan,
+                    'petugas_mc' => [],
+                    'petugas_protokol' => []
+                ];
+            }
+
+            if ($penugasan['category'] === 'MC') {
+                $kegiatanGroups[$kegiatanId]['petugas_mc'][] = $penugasan;
+            } else {
+                $kegiatanGroups[$kegiatanId]['petugas_protokol'][] = $penugasan;
+            }
+        }
+
+        $combinedMessage  = "🔔 *Assalamualaikum*\n\n";
+        $combinedMessage .= " *Izin Pimpinan dan Rekan-Rekan*\n\n";
+        $combinedMessage .= " *Berikut Informasi Jadwal Kegiatan Petugas Protokol*\n\n";
+        $combinedMessage .= "📊 *Total Kegiatan Aktif: " . count($kegiatanGroups) . "*\n";
+        $combinedMessage .= "═══════════════════════════\n\n";
+
+        $kegiatanIndex = 1;
+        foreach ($kegiatanGroups as $kegiatanId => $data) {
+            $kegiatan = $data['kegiatan'];
+            $petugasMC = $data['petugas_mc'];
+            $petugasProtokol = $data['petugas_protokol'];
+
+            // Format tanggal sesuai yang diinginkan
+            $jadwalTimestamp = strtotime($kegiatan['jadwal_kegiatan']);
+            $hari = date('N', $jadwalTimestamp); // 1 (Senin) sampai 7 (Minggu)
+            $namaHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][date('w', $jadwalTimestamp)];
+
+            $tanggal = date('j', $jadwalTimestamp);
+            $bulan = date('n', $jadwalTimestamp);
+            $namaBulan = [
+                'Januari',
+                'Februari',
+                'Maret',
+                'April',
+                'Mei',
+                'Juni',
+                'Juli',
+                'Agustus',
+                'September',
+                'Oktober',
+                'November',
+                'Desember'
+            ][$bulan - 1];
+
+            $tahun = date('Y', $jadwalTimestamp);
+            $waktu = date('H.i', $jadwalTimestamp);
+
+            $combinedMessage .= "🎯 *KEGIATAN #{$kegiatanIndex}*\n";
+            $combinedMessage .= "📋 *Judul:* {$kegiatan['judul_kegiatan']}\n";
+            $combinedMessage .= "📞 *Narahubung:* {$kegiatan['narahubung_kegiatan']}\n";
+            $combinedMessage .= "📍 *Alamat:* {$kegiatan['alamat_kegiatan']}\n";
+            $combinedMessage .= "🗺️ *Lokasi:* {$kegiatan['lokasi_kegiatan']}\n";
+
+            // jadwal
+            $combinedMessage .= "📅 *Jadwal:* {$namaHari}, {$tanggal} {$namaBulan} {$tahun} ({$waktu} WIB)\n";
+
+            $combinedMessage .= "📝 *Deskripsi:* {$kegiatan['deksripsi_kegiatan']}\n";
+
+            // Tambahkan informasi Channel HT jika ada
+            if (!empty($kegiatan['channel_ht'])) {
+                $combinedMessage .= "📡 *Channel HT:* {$kegiatan['channel_ht']}\n";
+            }
+
+            // Tambahkan daftar petugas MC
+            if (!empty($petugasMC)) {
+                $combinedMessage .= "\n🎤 *Petugas MC:*\n";
+                foreach ($petugasMC as $index => $petugas) {
+                    $combinedMessage .= "   • {$petugas['nama_petugas']}\n";
+                }
+            }
+
+            // Tambahkan daftar petugas Protokol
+            if (!empty($petugasProtokol)) {
+                $combinedMessage .= "\n📋 *Petugas Protokol:*\n";
+                foreach ($petugasProtokol as $index => $petugas) {
+                    $combinedMessage .= "   • {$petugas['nama_petugas']}\n";
+                }
+            }
+
+            $combinedMessage .= "\n🔗 *Link Kehadiran:* {$kegiatan['kehadiran_kegiatan']}\n";
+            $combinedMessage .= "─────────────────────────────\n\n";
+
+            $kegiatanIndex++;
+        }
+
+        $combinedMessage .= "💼 *Mohon semua petugas mempersiapkan diri dengan baik!*\n";
+        $combinedMessage .= "📻 *Pastikan HT sudah di-set sesuai channel masing-masing*\n";
+        $combinedMessage .= "🤝 *Koordinasi dengan tim dan bersiaplah tepat waktu*\n\n";
+        $combinedMessage .= "✅ *Terima kasih atas dedikasi dan kerja sama tim!*";
+
+        // Kirim 1 notifikasi gabungan
+        $telegramController = new NotificationTelegramController();
+
+        // Gunakan kegiatan pertama untuk referensi, tapi message custom
+        $firstKegiatanId = array_key_first($kegiatanGroups);
+        $result = $telegramController->sendManualNotification($firstKegiatanId, $combinedMessage);
+
+        if ($result['status'] === 'success') {
+            echo json_encode([
+                'status' => 'success',
+                'message' => "Berhasil mengirim notifikasi gabungan untuk " . count($kegiatanGroups) . " kegiatan ke semua petugas.",
+                'sent_count' => count($kegiatanGroups),
+                'total_count' => count($kegiatanGroups)
+            ]);
+        } else {
+            throw new Exception($result['message']);
+        }
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+        ]);
+    }
+    exit;
+}
 
 // Handle request
 $request = $_POST['request'] ?? '';
@@ -980,6 +1163,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'delete_penugasan':
             checkAdminAccess();
             deletePenugasan($pdo);
+            break;
+
+        case 'send_all_notifications':
+            checkAdminAccess();
+            sendAllNotifications($pdo);
             break;
 
         default:

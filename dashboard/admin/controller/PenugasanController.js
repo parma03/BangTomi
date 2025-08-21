@@ -393,6 +393,11 @@ $(document).ready(function () {
     sendNotification(penugasanId, kegiatanName, petugasName);
   });
 
+  $(document).on("click", ".send-all-notifications-btn", function () {
+    console.log("Send all notifications button clicked");
+    sendAllNotifications();
+  });
+
   // Event handlers
   $(document).on("click", ".add-penugasan-btn", function () {
     showPenugasanForm();
@@ -724,6 +729,94 @@ $(document).ready(function () {
             console.error("AJAX error:", xhr, status, error);
             hideLoading();
             showAlert("Terjadi kesalahan saat mengirim notifikasi!", "danger");
+          },
+        });
+      }
+    });
+  }
+
+  function sendAllNotifications() {
+    Swal.fire({
+      title: "Kirim Notifikasi Keseluruhan",
+      html: `
+      <div class="text-center">
+        <div class="mb-3">
+          <i class="fas fa-bullhorn fa-3x text-primary mb-3"></i>
+        </div>
+        <p>Apakah Anda yakin ingin mengirim notifikasi ke</p>
+        <strong class="text-primary">SEMUA PETUGAS</strong>
+        <p>untuk</p>
+        <strong class="text-info">SEMUA KEGIATAN AKTIF</strong>?
+        <div class="alert alert-warning mt-3 border-0 rounded-3">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <small>Notifikasi akan dikirim ke semua petugas yang memiliki penugasan aktif!</small>
+        </div>
+      </div>
+    `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#0d6efd",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText:
+        '<i class="fas fa-paper-plane me-1"></i>Kirim Semua Notifikasi',
+      cancelButtonText: '<i class="fas fa-times me-1"></i>Batal',
+      customClass: {
+        popup: "rounded-4 shadow-lg",
+        confirmButton: "btn-lg",
+        cancelButton: "btn-lg",
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Show loading
+        showLoading("Mengirim notifikasi keseluruhan...");
+
+        $.ajax({
+          type: "POST",
+          url: "controller/PenugasanController.php",
+          data: {
+            request: "send_all_notifications",
+          },
+          dataType: "json",
+          success: function (response) {
+            hideLoading();
+
+            if (response.status === "success") {
+              Swal.fire({
+                title: "Berhasil!",
+                html: `
+                <div class="text-center">
+                  <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                  <p>${response.message}</p>
+                  <div class="alert alert-success mt-3 border-0 rounded-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>
+                      <strong>Notifikasi terkirim:</strong> ${
+                        response.sent_count || 0
+                      } kegiatan<br>
+                      <strong>Total kegiatan:</strong> ${
+                        response.total_count || 0
+                      } kegiatan
+                    </small>
+                  </div>
+                </div>
+              `,
+                icon: "success",
+                confirmButtonText: "OK",
+                customClass: {
+                  popup: "rounded-4 shadow-lg",
+                },
+              });
+            } else {
+              showAlert(response.message, "danger");
+            }
+          },
+          error: function (xhr, status, error) {
+            console.error("AJAX error:", xhr, status, error);
+            hideLoading();
+            showAlert(
+              "Terjadi kesalahan saat mengirim notifikasi keseluruhan!",
+              "danger"
+            );
           },
         });
       }
